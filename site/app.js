@@ -206,9 +206,10 @@ function home() {
           <h1>Long-distance cycling in Central &amp; Western NY</h1>
         </div>
       </div>
-      <div class="cta poster-cta">
-        <a class="btn" href="#/about">New to randonneuring?</a>
-      </div>
+      <a class="welcome" href="#/about">
+        <span class="welcome-q">New to randonneuring?</span>
+        <span class="welcome-go">Welcome! Start here <span aria-hidden="true">→</span></span>
+      </a>
     </section>
 
     <section>
@@ -239,7 +240,7 @@ function about() {
       </figure>
 
       <h2>What is randonneuring?</h2>
-      <p>Randonneuring is long-distance, self-supported, non-competitive cycling. Randonneuring events (called <em>brevets</em>) have a time limit, and riders check in at a specified set of controls along the route.</p>
+      <p>Randonneuring is long-distance, self-supported, non-competitive cycling. Randonneuring events (called <em>brevets</em>) have a time limit, and riders check in at a specified set of controls along the route. For a fuller introduction, see the Chicago Randonneurs' <a href="https://chicagorando.org/learn-about-randonneuring/" target="_blank" rel="noopener">Learn About Randonneuring</a>.</p>
 
       <h2>About our club</h2>
       <p>The Finger Lakes Randonneurs is a club of long-distance cycling enthusiasts who live and ride in the valleys, over the hills, around the lakes, and through the towns of Central and Western New York. We organize a full calendar of brevets each year. We hope you'll join us for a ride some time!</p>
@@ -265,6 +266,9 @@ function about() {
       <h3>Why is this all so French?</h3>
       <p>Long-distance "audax" riding began in Italy in the 1890s and was taken up in France soon after. In the early 1920s the Audax Club Parisien created the <em>allure libre</em> ("free pace") format: rather than riding together at a set pace behind a road captain, riders go at their own speed and need only reach each control in time. That format is randonneuring, and the ACP still certifies brevets worldwide, which is why the vocabulary is French.</p>
       <p>The sport's signature event is <a href="https://www.paris-brest-paris.org">Paris-Brest-Paris</a>, a 1200 km ride with a 90-hour limit. It was first held in 1891, twelve years before the first Tour de France, making it one of the oldest cycling events still running. Held every four years, it draws thousands of randonneurs from around the world, and for many riders it's the goal of a lifetime.</p>
+
+      <h3>What do all these terms mean?</h3>
+      <p>Randonneuring has its own vocabulary: controls, brevet cards, DNFs, allure libre and more. The Chicago Randonneurs keep a good <a href="https://chicagorando.org/glossary-of-randonneuring-terms/" target="_blank" rel="noopener">glossary of randonneuring terms</a>.</p>
 
       <h2>Contact</h2>
       <ul>

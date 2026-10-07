@@ -89,7 +89,15 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .poster .cta { justify-content: center; margin-top: 3.5cqw; gap: 2cqw; }
 .poster .btn { font-size: max(0.8rem, 2.6cqw); padding: 1.4cqw 3cqw; }
 .poster .btn:not(.primary) { background: rgba(255, 252, 245, 0.92); color: #2c261f; border-color: transparent; }
-.poster-cta { justify-content: center; margin-top: 1rem; }
+/* welcome card under the home photo, same width as the photo */
+.welcome { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem;
+  width: min(100%, calc(min(86vh, 900px) * 5 / 6)); margin: 1rem auto 0; padding: 1.1rem 1.4rem;
+  border-radius: var(--radius); background: var(--lake-soft); color: var(--ink); text-decoration: none;
+  border: 1px solid transparent; transition: border-color 0.15s; }
+.welcome:hover { border-color: var(--lake); }
+.welcome-q { font-family: var(--serif); font-weight: 700; font-size: clamp(1.3rem, 3vw, 1.7rem); color: var(--forest); }
+.welcome-go { font-weight: 600; color: var(--lake); }
+.welcome:hover .welcome-go span { margin-left: 0.15em; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--vine); font-weight: 600; margin: 0; }
 .lede { font-size: 1.15rem; max-width: 40rem; color: var(--ink); }
 .cta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
