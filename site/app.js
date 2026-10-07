@@ -1,5 +1,60 @@
 const app = document.getElementById("app");
-const routeById = Object.fromEntries(ROUTES.map((r) => [r.id, r]));
+// Content lives in content/*.csv (see content/README.md); route_stats.json is written
+// from RideWithGPS by ../build_routes.py.
+let LOCATIONS = {}, ROUTES = [], RIDES = [], routeById = {};
+
+// RFC 4180 CSV: quoted fields may hold commas, newlines and doubled quotes.
+function parseCsv(text) {
+  const rows = [[]];
+  let field = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { rows.at(-1).push(field); field = ""; }
+    else if (c === "\n") { rows.at(-1).push(field); field = ""; rows.push([]); }
+    else if (c !== "\r") field += c;
+  }
+  rows.at(-1).push(field);
+  const [head, ...body] = rows;
+  return body.filter((r) => r.some((x) => x.trim())).map((r) => Object.fromEntries(head.map((h, i) => [h.trim(), (r[i] ?? "").trim()])));
+}
+
+const num = (s) => (s ? Number(s) : undefined);
+const list = (s) => s.split(";").map((x) => x.trim()).filter(Boolean);
+
+function toRoute(r, stats) {
+  const rwgps = list(r.maps).map((part) => {
+    const m = part.match(/^(?:(.+?):\s+)?\S*ridewithgps\.com\/routes\/(\d+)/);
+    return { id: m[2], label: m[1] };
+  });
+  const s = rwgps.map((m) => stats[m.id]);
+  const sum = (f) => s.reduce((a, x) => a + f(x), 0);
+  return {
+    id: r.id, name: r.name, start: r.start, rwgps, note: r.note, description: r.description,
+    km: num(r.km) ?? Math.floor(sum((x) => x.m) / 1000),
+    gain: s.length ? sum((x) => x.gain_m) : undefined,
+    unpaved: s.length ? Math.round(sum((x) => (x.m * x.unpaved_pct) / 100) / 1000) : undefined,
+    rusa: num(r.rusa), perm: num(r.perm), cues: list(r.cues),
+  };
+}
+
+async function loadContent() {
+  const get = (f) => fetch(`content/${f}`, { cache: "no-cache" }).then((res) => {
+    if (!res.ok) throw new Error(`content/${f}: ${res.status}`);
+    return f.endsWith(".json") ? res.json() : res.text().then(parseCsv);
+  });
+  const [locations, routes, rides, stats] = await Promise.all(
+    ["locations.csv", "routes.csv", "rides.csv", "route_stats.json"].map(get)
+  );
+  LOCATIONS = Object.fromEntries(locations.map(({ key, ...loc }) => [key, loc]));
+  ROUTES = routes.map((r) => toRoute(r, stats));
+  RIDES = rides.map((r) => ({ ...r, km: num(r.km) }));
+  routeById = Object.fromEntries(ROUTES.map((r) => [r.id, r]));
+}
 const today = new Date().toISOString().slice(0, 10);
 
 const BANDS = [
@@ -31,7 +86,6 @@ function rideInfo(ride) {
 
 // A start is either a LOCATIONS key (with a map link) or plain text like "Tully, NY".
 const startName = (start) => LOCATIONS[start]?.town ?? start ?? "";
-const rwgpsList = (r) => r.rwgps.map((x) => (typeof x === "number" ? { id: x } : x));
 const mapStatus = (r) => (r.rwgps.length ? "map" : r.cues?.length ? "cue" : "none");
 const hasMap = (r) => r.rwgps.length > 0;
 const MAP_STATUS = { map: "Map", cue: "Cue sheet only", none: "No route file" };
@@ -292,11 +346,8 @@ function routeDetail(id) {
   const r = routeById[id];
   if (!r) return `<p>Route not found. <a href="#/routes">Back to routes</a></p>`;
   const dates = RIDES.filter((x) => x.route === id).sort((a, b) => a.date.localeCompare(b.date));
-  const desc = (r.description || "").replace(/<rwgps-map id="(\d+)"><\/rwgps-map>/g, (_, rid) => rwgpsEmbed(rid));
-  const inlineMaps = /<rwgps-map/.test(r.description || "");
   const st = mapStatus(r);
-  const maps = inlineMaps ? ""
-    : hasMap(r) ? rwgpsList(r).map((m) => rwgpsEmbed(m.id, m.label)).join("")
+  const maps = hasMap(r) ? r.rwgps.map((m) => rwgpsEmbed(m.id, m.label)).join("")
     : `<div class="map-empty">No RideWithGPS map for this route yet.${st === "cue" ? " Only the cue sheet exists." : " No cue sheet or map has been found."}</div>`;
   return `
     <a class="back" href="#/routes">← All routes</a>
@@ -311,7 +362,7 @@ function routeDetail(id) {
     </div>
     ${r.note ? `<p class="route-note">${esc(r.note)}</p>` : ""}
     ${maps}
-    <div class="prose">${desc || `<p class="muted">No description yet.</p>`}</div>
+    <div class="prose">${r.description ? `<p>${esc(r.description)}</p>` : `<p class="muted">No description yet.</p>`}</div>
     <h2>Scheduled</h2>
     ${dates.length ? `<ul class="rides">${dates.map(rideRow).join("")}</ul>` : `<p class="muted">Not on the calendar.</p>`}`;
 }
@@ -384,4 +435,6 @@ window.addEventListener("hashchange", () => {
   window.scrollTo(0, 0);
 });
 document.querySelector(".banner-inner").insertAdjacentHTML("afterbegin", bannerArt());
-render();
+loadContent().then(render, (err) => {
+  app.innerHTML = `<p>Could not load the site's content (${esc(err.message)}).</p>`;
+});
