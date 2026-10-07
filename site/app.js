@@ -173,7 +173,10 @@ function nominalKm(km) {
 const RBA_EMAIL = { user: "", domain: "" };
 const rbaEmail = () => (RBA_EMAIL.user && RBA_EMAIL.domain ? `${RBA_EMAIL.user}@${RBA_EMAIL.domain}` : "");
 
-const RIDER_INFO_FORM = "https://distancerider.net/new/pages/rider_info.html";
+const RIDER_INFO_FORM = "#/rider-info";
+// The sign-up form posts to the old distancerider.net script, which adds the rider to
+// Pete's rider list and emails him the details.
+const RIDER_INFO_ACTION = "https://distancerider.net/RiderInfo/RiderInfo.php";
 
 // Email subject for registering, e.g. "Paul's Niagara Loop 600K on Oct 10, 2026".
 function registerSubject(ride) {
@@ -189,7 +192,7 @@ function registerBody(subject) {
     ? `<a class="btn primary" href="mailto:${email}?subject=${encodeURIComponent(subject)}">Email the RBA to register</a>
        <p class="small muted">No email app? Send a message to <strong>${esc(email)}</strong> with the subject “${esc(subject)}”.</p>`
     : `<p>Email the RBA at <strong>&lt;PETE'S EMAIL&gt;</strong> with the subject “${esc(subject)}”.</p>`;
-  return `${how}<p class="small">First ride with us? Also fill in the <a href="${RIDER_INFO_FORM}" target="_blank" rel="noopener">rider info form</a>.</p>`;
+  return `${how}<p class="small">First ride with us? Also fill in the <a href="${RIDER_INFO_FORM}">rider info form</a>.</p>`;
 }
 
 // Links and notes shown on the Calendar and About pages.
@@ -200,12 +203,12 @@ function rideInfoBox(heading) {
       <ul class="info-links">
         <li><a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> <span class="muted">(required to ride)</span></li>
         <li><a href="https://rusa.org/pages/rulesForRiders" target="_blank" rel="noopener">RUSA rules for riders</a></li>
-        <li><a href="https://distancerider.net/new/lighting-requirements.html" target="_blank" rel="noopener">Lighting requirements</a></li>
+        <li><a href="#/lighting">Lighting requirements</a></li>
         <li><a href="https://rusa.org/pages/new-member-guide" target="_blank" rel="noopener">RUSA new member guide</a></li>
       </ul>
       <ul class="info-notes">
         <li><strong>Register ahead</strong> by email, using the Register link on each ride, so brevet cards and cue sheets can be ready. Registering on the day is usually fine, except for flèches, traces, and rides of 600&nbsp;km and longer.</li>
-        <li><strong>First time riding with us?</strong> Fill in the <a href="${RIDER_INFO_FORM}" target="_blank" rel="noopener">rider info form</a> so your details are on file and your paperwork can be printed ahead.</li>
+        <li><strong>First time riding with us?</strong> Fill in the <a href="${RIDER_INFO_FORM}">rider info form</a> so your details are on file and your paperwork can be printed ahead.</li>
         <li><strong>Cue sheets on this site are unofficial.</strong> Pick up the official cue sheet at the start.</li>
         <li>Any event may be cancelled or rescheduled up to its start.</li>
       </ul>
@@ -435,6 +438,95 @@ function calendar() {
       <ul class="rides">${list.map(rideRow).join("")}</ul>`).join("") || `<p class="muted">No rides match.</p>`}`;
 }
 
+function lighting() {
+  return `
+    <article class="prose">
+      <h1>Lighting requirements</h1>
+      <p>The purpose of the lighting requirement and inspection is to ensure that the cyclist has an adequate set of lights for riding in low and no light conditions, including rain and fog. Backup requirements ensure that the cyclist can continue despite a failure of some component of the lighting system. This listing is the minimum requirement by RUSA for ACP and RUSA sanctioned events. Cyclists are responsible for the proper operation of their lighting system.</p>
+      <p>As stated in the RUSA lighting rules: "Each rider, whether riding in a group or by himself, must fully comply with this requirement. Everyone must use their lights!" Non-compliance with these regulations during low or no light conditions will result in disqualification. Rider safety is paramount.</p>
+
+      <h2>Primary lighting system</h2>
+      <ul>
+        <li>White headlight</li>
+        <li>At least one red taillight with a steady operation mode</li>
+        <li>Generator or battery powered sources (head and taillights may or may not share power)</li>
+        <li>Lights must be firmly attached to the bike, not clipped onto a bag which may change their angle when riding</li>
+      </ul>
+
+      <h2>Backups</h2>
+      <p>No specific requirements are made for a backup system; however, the following are recommended:</p>
+      <ul>
+        <li>Spare headlight</li>
+        <li>Spare taillight</li>
+        <li>Spare batteries for headlights and taillights</li>
+        <li>Small headlamp (useful for reading cue sheets or making repairs)</li>
+      </ul>
+
+      <h2>Reflective requirements</h2>
+      <ul>
+        <li>Reflective vest, sash, Sam Browne belt, Illuminite-type jacket or vest, etc. (small reflective stripes on clothing do not count)</li>
+        <li>Red rear reflector (state law). Some rear-light lenses do not qualify as reflectors: they must be explicitly marked as approved by the CPSC (bicycle-type) or S.A.E. (automotive-type).</li>
+        <li>Reflective ankle bands</li>
+      </ul>
+      <p>For more detail, see RUSA's <a href="https://rusa.org/reflectivity" target="_blank" rel="noopener">Reflectivity Guide</a> and the <a href="https://rusa.org/pages/rulesForRiders" target="_blank" rel="noopener">Rules for Riders</a> (Article 10).</p>
+
+      <h2>Recommended items</h2>
+      <ul>
+        <li>Reflective material on pedals or shoes</li>
+        <li>Light-colored clothing</li>
+        <li>A map or cue sheet reading light, such as a hiking headlamp or a small clip-on light</li>
+      </ul>
+
+      <h2>Most common lighting problems</h2>
+      <ul>
+        <li>Low or dead battery</li>
+        <li>Wiring problem (loose wire, short, bad switch or connector)</li>
+        <li>Failure of the attachment mechanism: the light falls off and is damaged</li>
+        <li>Failure to operate due to moisture or rain (we recommend sealing the light with electrical tape or a clear plastic bag)</li>
+        <li>Generator failure or slippage</li>
+        <li>LED failure</li>
+        <li>Battery enclosure problem</li>
+      </ul>
+      <p>Make sure the combination of lights, power sources and backups you choose lets you tolerate any of these failures and will last for the hours of night and low-light riding you will be doing.</p>
+      <p><strong>Bicycles and riders are subject to a safety check before the start of the ride.</strong> Riders whose bikes and persons do not meet the minimum requirements will not be allowed to start.</p>
+    </article>`;
+}
+
+function riderInfo() {
+  const field = (name, label, opts = {}) => `
+        <label class="field${opts.wide ? " wide" : ""}"><span>${label}${opts.required ? " <em>*</em>" : ""}</span>
+          <input name="${name}" type="${opts.type || "text"}"${opts.required ? " required" : ""}${opts.auto ? ` autocomplete="${opts.auto}"` : ""}${opts.max ? ` maxlength="${opts.max}"` : ""}>
+        </label>`;
+  return `
+    <article class="prose">
+      <h1>New rider sign-up</h1>
+      <p>Riding with us for the first time? Fill this in once, before your first event. It puts you in our rider list, so your brevet card and paperwork can be printed ahead and nothing gets mistyped on the morning of the ride. The RBA will email you a confirmation once you're added.</p>
+      <p>You'll need an active <a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> to ride.</p>
+    </article>
+    <form id="rider-form" class="rider-form" method="post" action="${RIDER_INFO_ACTION}">
+      <div class="field-grid">
+        ${field("fname", "First name", { required: true, auto: "given-name" })}
+        ${field("lname", "Last name", { required: true, auto: "family-name" })}
+        ${field("snum", "Street number", { auto: "address-line1" })}
+        ${field("street", "Street")}
+        ${field("city", "City", { auto: "address-level2" })}
+        ${field("state", "State / province (2 letters)", { max: 2, auto: "address-level1" })}
+        ${field("zip", "Zip / postal code", { auto: "postal-code" })}
+        ${field("RUSA", "RUSA number", { required: true })}
+        ${field("email", "Email", { type: "email", required: true, auto: "email" })}
+        ${field("phone", "Home phone", { type: "tel", auto: "tel" })}
+        ${field("cell", "Cell number during the ride", { type: "tel" })}
+        ${field("emergency", "Emergency contact name(s)", { required: true })}
+        ${field("emergencyphone", "Emergency contact phone number(s)", { type: "tel", required: true })}
+        <label class="field wide"><span>Anything else we should know?</span><textarea name="feedback" rows="3"></textarea></label>
+      </div>
+      <input type="hidden" name="submitaddress" value="">
+      <p class="small muted"><em>*</em> required. Your details go to the RBA only; they are not shown on this site.</p>
+      <p id="rider-form-msg" class="rider-form-msg" hidden></p>
+      <button class="btn primary" type="submit">Send</button>
+    </form>`;
+}
+
 // ---- router ----
 
 function render() {
@@ -445,6 +537,8 @@ function render() {
   else if (tab === "routes" && parts[1]) html = routeDetail(parts[1]);
   else if (tab === "routes") html = routes();
   else if (tab === "calendar") html = calendar();
+  else if (tab === "lighting") html = lighting();
+  else if (tab === "rider-info") html = riderInfo();
   else html = home();
   app.innerHTML = html;
   document.querySelectorAll(".tabs a").forEach((a) => a.classList.toggle("active", a.dataset.tab === (tab || "home")));
@@ -465,6 +559,18 @@ app.addEventListener("click", (e) => {
   if (!chip) return;
   state[chip.parentElement.dataset.chips] = chip.dataset.band;
   render();
+});
+app.addEventListener("submit", (e) => {
+  if (e.target.id !== "rider-form") return;
+  const email = rbaEmail();
+  if (!email) {
+    e.preventDefault();
+    const msg = document.getElementById("rider-form-msg");
+    msg.textContent = "Sign-up isn't connected yet on this prototype site, so nothing was sent.";
+    msg.hidden = false;
+    return;
+  }
+  e.target.elements.submitaddress.value = email;
 });
 app.addEventListener("toggle", (e) => {
   const d = e.target;

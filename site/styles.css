@@ -202,3 +202,14 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .register-body { margin-top: 0.5rem; padding: 0.75rem 0.9rem; border-radius: 8px; background: var(--lake-soft); }
 .register-body p { margin: 0.4rem 0 0; }
 .register-body .btn { font-size: 0.9rem; }
+
+/* new rider sign-up form */
+.rider-form { max-width: 42rem; margin-top: 0.5rem; }
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
+.field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
+.field.wide { grid-column: 1 / -1; }
+.field em { color: var(--vine); font-style: normal; }
+.field input, .field textarea { font: inherit; padding: 0.5rem 0.65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.rider-form .btn { font: inherit; cursor: pointer; }
+.rider-form-msg { padding: 0.6rem 0.8rem; border-left: 3px solid var(--vine); background: var(--surface); }
+@media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } }
