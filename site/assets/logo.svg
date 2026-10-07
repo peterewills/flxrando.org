@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 108 500 206" role="img" aria-label="Finger Lakes Randonneurs logo">
+  <title>Finger Lakes Randonneurs</title>
+  <rect fill="#8a9c7a" x="20" y="162" width="480" height="100"/>
+  <polygon fill="#efe5c9" points="268,162 20,162 20,262 92,262"/>
+  <rect fill="#2c261f" x="20" y="262" width="480" height="12"/>
+  <g fill="none" stroke="#2c261f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="288" cy="213" r="46"/>
+    <circle cx="444" cy="213" r="46"/>
+    <path d="M274.4 165.4 A49.5 49.5 0 0 1 334.5 229.9 M395.0 219.9 A49.5 49.5 0 1 1 491.8 225.8" stroke-width="5" stroke-linecap="butt"/>
+    <path d="M288 213 L337 213 M444 213 L489.0 194" stroke-width="2.5"/>
+    <path d="M323 139 L317 160 M323 140 L406.6 140 M380 222 L406.6 140 M317 160 L380 222 M380 222 L444 213 M406.6 140 L444 213"/>
+    <path d="M317 160 L310.1 184 C306.8 195.5 297 210 288 213"/>
+    <path d="M323 139 L326.8 125.5 L305 125.5 Q298 125.5 298 132"/>
+    <path d="M406.6 140 L412.4 122"/>
+    <path d="M274 162 L314 162"/>
+    <circle cx="380" cy="222" r="11" stroke-width="5"/>
+    <path d="M380 222 L360 228" stroke-width="4"/>
+  </g>
+  <g fill="#2c261f">
+    <rect x="272" y="132" width="38" height="28" rx="4"/>
+    <path d="M394 121.5C394 119.8 396 119.2 400 118.8C410 118 422 117.2 429 117C432 117 433.5 118 433.5 120L433 124C432.6 125.2 431 125.6 429 125.4C422 124.6 416 123.8 410 123.6C403 123.4 398 123.6 396 123.4C394.6 123.2 394 122.6 394 121.5Z"/>
+    <rect x="354" y="227" width="12" height="3.5" rx="1"/>
+    <rect x="264" y="159" width="11" height="8" rx="2"/>
+  </g>
+</svg>
