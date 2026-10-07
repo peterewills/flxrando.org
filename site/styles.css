@@ -167,8 +167,6 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 
 .prose { max-width: 42rem; }
 .prose li { margin-bottom: 0.4rem; }
-.draft-tag { font-weight: 700; color: var(--vine); }
-.draft-note { margin-top: 1.5rem; padding: 0.5rem 0.75rem; border-left: 3px solid var(--vine); background: var(--surface); font-size: 0.9rem; color: var(--muted); }
 
 .site-footer { margin-top: 4rem; padding: 1.5rem 0; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
 .prototype-note { flex-basis: 100%; }

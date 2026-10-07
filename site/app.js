@@ -179,16 +179,17 @@ function home() {
 function about() {
   return `
     <article class="prose">
-      <p class="draft-note">Draft copy for the prototype. Replace with the club's own text.</p>
       <h1>About</h1>
       <figure class="photo">
         <img src="assets/photos/group-byrne-dairy.jpg" alt="Three club members in Finger Lakes Randonneurs jerseys at a Byrne Dairy" loading="lazy">
         <figcaption>Club jerseys at a Byrne Dairy stop, August 2026.</figcaption>
       </figure>
-      <p><span class="draft-tag">[DRAFT - TO UPDATE]</span> The Finger Lakes Randonneurs are a group of <a href="https://rusa.org">Randonneurs USA</a> members who organize and ride long-distance events in Western and Central New York. Most rides start from Ontario (east of Rochester) or the Ithaca area.</p>
 
       <h2>What is randonneuring?</h2>
-      <p><span class="draft-tag">[DRAFT - TO UPDATE]</span> Randonneuring is long-distance cycling against a time limit, not against other riders. Routes pass through checkpoints ("controls") where you record your arrival, and you carry what you need between them. There is no sag wagon and no podium; finishing within the time limit is the goal.</p>
+      <p>Randonneuring is long-distance, self-supported, non-competitive cycling. Randonneuring events (called <em>brevets</em>) have a time limit, and riders check in at a specified set of controls along the route.</p>
+
+      <h2>About our club</h2>
+      <p>The Finger Lakes Randonneurs is a club of long-distance cycling enthusiasts who live and ride in the valleys, over the hills, around the lakes, and through the towns of Central and Western New York. We organize a full calendar of brevets each year. We hope you'll join us for a ride some time!</p>
 
       <h2>Event types</h2>
       <ul>
@@ -198,8 +199,19 @@ function about() {
         <li><strong>Flèche / Trace / Dart</strong>: team rides on routes the team designs, finishing at a common point.</li>
       </ul>
 
-      <h2>Riding with us</h2>
-      <p>Check the <a href="#/calendar">calendar</a>, read the route and cue sheet, and contact the ride organizer if you have questions. Many rides use <a href="https://randonneuring.org">eBrevet</a> for check-in at controls. See <a href="https://rusa.org">rusa.org</a> for membership and rules.</p>
+      <h2>FAQs</h2>
+      <h3>Do I need to be super fit?</h3>
+      <p>No! Plenty of riders complete brevets at a very moderate pace. All that is required is the ability to be self-sufficient, a bike you are comfortable spending a long day on, and the mental grit to keep pedaling.</p>
+
+      <h3>Do I need a fancy bike?</h3>
+      <p>No! Any bike you are comfortable on will do just fine. It's best to have some way to carry food, clothing, etc., and for the longer rides you'll need a reliable lighting setup. But don't let equipment stop you from getting started: you can ride a populaire on almost any bike!</p>
+
+      <h3>Do I need to be a member to take part in a brevet?</h3>
+      <p>Yes, for insurance purposes all riders need an active <a href="https://rusa.org">Randonneurs USA</a> membership; you can join on the RUSA website. If you have questions, <a href="mailto:RBA_EMAIL_PLACEHOLDER">contact our RBA</a> (Regional Brevet Administrator).</p>
+
+      <h3>Why is this all so French?</h3>
+      <p>Long-distance "audax" riding began in Italy in the 1890s and was taken up in France soon after. In the early 1920s the Audax Club Parisien created the <em>allure libre</em> ("free pace") format: rather than riding together at a set pace behind a road captain, riders go at their own speed and need only reach each control in time. That format is randonneuring, and the ACP still certifies brevets worldwide, which is why the vocabulary is French.</p>
+      <p>The sport's signature event is <a href="https://www.paris-brest-paris.org">Paris-Brest-Paris</a>, a 1200 km ride with a 90-hour limit. It was first held in 1891, twelve years before the first Tour de France, making it one of the oldest cycling events still running. Held every four years, it draws thousands of randonneurs from around the world, and for many riders it's the goal of a lifetime.</p>
 
       <h2>Contact</h2>
       <ul>
