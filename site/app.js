@@ -203,12 +203,11 @@ function home() {
       <div class="poster">
         <img src="assets/photos/river-bridge-poster.jpg" alt="A randonneuring bike leaning on a bridge rail above a river valley">
         <div class="poster-text">
-          <h1>Non-competitive distance riding in Western NY</h1>
-          <div class="cta">
-            <a class="btn primary" href="#/calendar">See the calendar</a>
-            <a class="btn" href="#/about">New to randonneuring?</a>
-          </div>
+          <h1>Long-distance cycling in Central &amp; Western NY</h1>
         </div>
+      </div>
+      <div class="cta poster-cta">
+        <a class="btn" href="#/about">New to randonneuring?</a>
       </div>
     </section>
 

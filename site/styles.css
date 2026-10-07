@@ -89,6 +89,7 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .poster .cta { justify-content: center; margin-top: 3.5cqw; gap: 2cqw; }
 .poster .btn { font-size: max(0.8rem, 2.6cqw); padding: 1.4cqw 3cqw; }
 .poster .btn:not(.primary) { background: rgba(255, 252, 245, 0.92); color: #2c261f; border-color: transparent; }
+.poster-cta { justify-content: center; margin-top: 1rem; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--vine); font-weight: 600; margin: 0; }
 .lede { font-size: 1.15rem; max-width: 40rem; color: var(--ink); }
 .cta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
