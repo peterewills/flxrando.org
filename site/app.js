@@ -167,6 +167,51 @@ function nominalKm(km) {
   return `${d}<span>km</span>`;
 }
 
+// RBA email for registration, kept in two parts and joined only when someone opens a
+// Register panel, so scrapers reading the page source never see a whole address.
+// Leave empty to show a placeholder.
+const RBA_EMAIL = { user: "", domain: "" };
+const rbaEmail = () => (RBA_EMAIL.user && RBA_EMAIL.domain ? `${RBA_EMAIL.user}@${RBA_EMAIL.domain}` : "");
+
+const RIDER_INFO_FORM = "https://distancerider.net/new/pages/rider_info.html";
+
+// Email subject for registering, e.g. "Paul's Niagara Loop 600K on Oct 10, 2026".
+function registerSubject(ride) {
+  const { name, km } = rideInfo(ride);
+  const label = km < 200 ? "Populaire" : `${[1200, 1000, 600, 400, 300, 200].find((x) => km >= x)}K`;
+  const named = /\d{3,4}\s?k\b/i.test(name) || /populaire/i.test(name);
+  return `${name}${named ? "" : ` ${label}`} on ${fmtDate(ride.date, { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
+function registerBody(subject) {
+  const email = rbaEmail();
+  const how = email
+    ? `<a class="btn primary" href="mailto:${email}?subject=${encodeURIComponent(subject)}">Email the RBA to register</a>
+       <p class="small muted">No email app? Send a message to <strong>${esc(email)}</strong> with the subject “${esc(subject)}”.</p>`
+    : `<p>Email the RBA at <strong>&lt;PETE'S EMAIL&gt;</strong> with the subject “${esc(subject)}”.</p>`;
+  return `${how}<p class="small">First ride with us? Also fill in the <a href="${RIDER_INFO_FORM}" target="_blank" rel="noopener">rider info form</a>.</p>`;
+}
+
+// Links and notes shown on the Calendar and About pages.
+function rideInfoBox(heading) {
+  return `
+    <section class="ride-info">
+      <h2>${heading}</h2>
+      <ul class="info-links">
+        <li><a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> <span class="muted">(required to ride)</span></li>
+        <li><a href="https://rusa.org/pages/rulesForRiders" target="_blank" rel="noopener">RUSA rules for riders</a></li>
+        <li><a href="https://distancerider.net/new/lighting-requirements.html" target="_blank" rel="noopener">Lighting requirements</a></li>
+        <li><a href="https://rusa.org/pages/new-member-guide" target="_blank" rel="noopener">RUSA new member guide</a></li>
+      </ul>
+      <ul class="info-notes">
+        <li><strong>Register ahead</strong> by email, using the Register link on each ride, so brevet cards and cue sheets can be ready. Registering on the day is usually fine, except for flèches, traces, and rides of 600&nbsp;km and longer.</li>
+        <li><strong>First time riding with us?</strong> Fill in the <a href="${RIDER_INFO_FORM}" target="_blank" rel="noopener">rider info form</a> so your details are on file and your paperwork can be printed ahead.</li>
+        <li><strong>Cue sheets on this site are unofficial.</strong> Pick up the official cue sheet at the start.</li>
+        <li>Any event may be cancelled or rescheduled up to its start.</li>
+      </ul>
+    </section>`;
+}
+
 function rideRow(ride) {
   const { route, name, km, start } = rideInfo(ride);
   const past = ride.date < today;
@@ -185,6 +230,7 @@ function rideRow(ride) {
           ${start ? `<span>${esc(startName(start))}</span>` : ""}
         </div>
         ${ride.note ? `<div class="ride-note">${esc(ride.note)}</div>` : ""}
+        ${past ? "" : `<details class="register" data-subject="${esc(registerSubject(ride))}"><summary>Register</summary><div class="register-body"></div></details>`}
       </div>
       <div class="ride-km" title="${km} km">${nominalKm(km)}</div>
     </li>`;
@@ -253,6 +299,8 @@ function about() {
         <li><strong>Flèche / Trace / Dart</strong>: team rides on routes the team designs, finishing at a common point.</li>
       </ul>
 
+      ${rideInfoBox("Riding with us")}
+
       <h2>FAQs</h2>
       <h3>Do I need to be super fit?</h3>
       <p>No! Plenty of riders complete brevets at a very moderate pace. All that is required is the ability to be self-sufficient, a bike you are comfortable spending a long day on, and the mental grit to keep pedaling.</p>
@@ -261,7 +309,7 @@ function about() {
       <p>No! Any bike you are comfortable on will do just fine. It's best to have some way to carry food, clothing, etc., and for the longer rides you'll need a reliable lighting setup. But don't let equipment stop you from getting started: you can ride a populaire on almost any bike!</p>
 
       <h3>Do I need to be a member to take part in a brevet?</h3>
-      <p>Yes, for insurance purposes all riders need an active <a href="https://rusa.org">Randonneurs USA</a> membership; you can join on the RUSA website. If you have questions, <a href="mailto:RBA_EMAIL_PLACEHOLDER">contact our RBA</a> (Regional Brevet Administrator).</p>
+      <p>Yes, for insurance purposes all riders need an active <a href="https://rusa.org">Randonneurs USA</a> membership; you can join on the RUSA website. If you have questions, contact our RBA (Regional Brevet Administrator); details are under Contact below.</p>
 
       <h3>Why is this all so French?</h3>
       <p>Long-distance "audax" riding began in Italy in the 1890s and was taken up in France soon after. In the early 1920s the Audax Club Parisien created the <em>allure libre</em> ("free pace") format: rather than riding together at a set pace behind a road captain, riders go at their own speed and need only reach each control in time. That format is randonneuring, and the ACP still certifies brevets worldwide, which is why the vocabulary is French.</p>
@@ -377,6 +425,7 @@ function calendar() {
   for (const r of rides) (byMonth[r.date.slice(0, 7)] ||= []).push(r);
   return `
     <h1>Calendar</h1>
+    ${rideInfoBox("Before you ride")}
     <div class="cal-controls">
       ${chips(state.calBand, "calBand")}
       <label class="toggle"><input type="checkbox" id="showPast" ${state.showPast ? "checked" : ""}> Show past rides</label>
@@ -417,6 +466,10 @@ app.addEventListener("click", (e) => {
   state[chip.parentElement.dataset.chips] = chip.dataset.band;
   render();
 });
+app.addEventListener("toggle", (e) => {
+  const d = e.target;
+  if (d.classList?.contains("register") && d.open) d.querySelector(".register-body").innerHTML = registerBody(d.dataset.subject);
+}, true);
 // Re-render only the table so the search box keeps focus while typing.
 app.addEventListener("input", (e) => {
   if (e.target.id === "routeQuery") {
