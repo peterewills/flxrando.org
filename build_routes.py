@@ -20,6 +20,7 @@ CONTENT = Path(__file__).resolve().parent / "site" / "content"
 STATS = CONTENT / "route_stats.json"
 RWGPS = re.compile(r"ridewithgps\.com/routes/(\d+)")
 URL = re.compile(r"^https?://\S+$")
+PAGE = re.compile(r"^#/[a-z0-9-]+$")  # a page on this site, e.g. #/waterfalls
 TIME = re.compile(r"^(\d{1,2}:\d{2} (AM|PM)|TBD|Evening|Team choice)$")
 
 COLUMNS = {
@@ -134,9 +135,10 @@ def check(locations, routes, rides, problems):
         bad_start(ride["start"], keys, where, problems, required=False)
         if not ride["type"]:
             problems.append(f"{where}: type is empty")
-        for col in ("ebrevet", "link"):
-            if ride[col] and not URL.match(ride[col]):
-                problems.append(f"{where}: {col} is not a link")
+        if ride["ebrevet"] and not URL.match(ride["ebrevet"]):
+            problems.append(f"{where}: ebrevet is not a link")
+        if ride["link"] and not (URL.match(ride["link"]) or PAGE.match(ride["link"])):
+            problems.append(f"{where}: link is not a link or a page on this site like #/waterfalls")
 
 
 def bad_start(start, keys, where, problems, required):

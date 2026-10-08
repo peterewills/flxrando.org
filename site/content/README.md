@@ -13,7 +13,7 @@ One line per scheduled ride.
 - `route`: the `id` of a route in routes.csv. For a one-off event with no route, leave it empty and fill in `name` and `km` instead (and `start` if known).
 - `type`: e.g. `ACP brevet`, `RUSA populaire`
 - `fee`: e.g. `$10`, `Free`
-- `ebrevet`, `link`, `note`: optional
+- `ebrevet`, `link`, `note`: optional. `link` can be a web address or a page on this site, like `#/waterfalls`.
 
 ## routes.csv: the route library
 
