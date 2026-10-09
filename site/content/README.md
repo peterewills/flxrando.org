@@ -1,19 +1,23 @@
 # Editing the club site
 
-Everything on the calendar and the routes pages comes from the three files in this folder. To change one, open it here on GitHub, click the pencil icon, edit, and click "Commit changes". The site updates a few minutes later.
+Everything on the calendar and the routes pages comes from the three files in this folder, plus RUSA's event list for the calendar. To change one, open it here on GitHub, click the pencil icon, edit, and click "Commit changes". The site updates a few minutes later.
 
 Each file is a spreadsheet saved as text: one line per item, values separated by commas. A value that itself contains a comma goes inside double quotes, e.g. `"Tully, NY"`. Leave a value empty by putting nothing between the commas. You can also open the file in Excel or Google Sheets and save it back as CSV.
 
-## rides.csv: the calendar
+## The calendar: RUSA plus rides.csv
 
-One line per scheduled ride.
+The calendar lists every event RUSA has for our region (NY: Central/Western), read from the [RUSA event search](https://rusa.org/cgi-bin/eventsearch_GF.pl) each time the site is built. To add, move or cancel a ride, change it on RUSA, then rebuild the site (any commit, or "Run workflow" under the Actions tab). The date, type and distance come only from RUSA. The route comes from the RUSA route number, matched to the `rusa` column in routes.csv.
 
-- `date`: like `2026-05-30`
-- `time`: like `7:30 AM`, or `TBD`, `Evening`, `Team choice`
-- `route`: the `id` of a route in routes.csv. For a one-off event with no route, leave it empty and fill in `name` and `km` instead (and `start` if known).
-- `type`: e.g. `ACP brevet`, `RUSA populaire`
-- `fee`: e.g. `$10`, `Free`
-- `ebrevet`, `link`, `note`: optional. `link` can be a web address or a page on this site, like `#/waterfalls`.
+rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add.
+
+- `date`, `km`: pick out the RUSA event, by its date and its distance as RUSA lists it (e.g. `201`, `1309`).
+- `route`: only when two RUSA events share a date and distance. Put the route `id` here; leave it empty for the event that has no route on RUSA.
+- `time`, `finish_time`: like `7:30 AM`, or `TBD`, `Evening`, `Team choice`. Finish time is for team rides.
+- `start`, `finish`: a `key` from locations.csv or a place like `Tully, NY`. `start` is only needed when it differs from the route's start; `finish` is for team rides.
+- `fee`: only when it differs from the usual fee by distance: populaires free, 200K $10, 300K $20, 360K $36, 400K and 600K $25, longer TBD.
+- `ebrevet`: the randonneuring.org event page. For an upcoming ride, the build checks that the event page's date, start time, start town, distance and RideWithGPS route match ours, and fails if they don't.
+- `link`: a web address or a page on this site, like `#/waterfalls`. The ride's name links here instead of to the route.
+- `description`: replaces the route's description on the calendar. `note`: a short extra line.
 
 ## routes.csv: the route library
 
@@ -35,4 +39,4 @@ Distance, climbing and unpaved km come from RideWithGPS automatically.
 
 ## If something goes wrong
 
-Every change is checked before it goes live. If a line has a mistake (a date in the wrong format, a ride naming a route that doesn't exist), the site keeps showing the last good version, and the failed run under the repository's Actions tab lists what to fix, by file and line.
+Every change is checked before it goes live. If a line has a mistake (a date in the wrong format, a rides.csv line that no longer matches a RUSA event), the site keeps showing the last good version, and the failed run under the repository's Actions tab lists what to fix, by file and line.

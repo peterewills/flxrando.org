@@ -48,11 +48,11 @@ async function loadContent() {
     return f.endsWith(".json") ? res.json() : res.text().then(parseCsv);
   });
   const [locations, routes, rides, stats] = await Promise.all(
-    ["locations.csv", "routes.csv", "rides.csv", "route_stats.json"].map(get)
+    ["locations.csv", "routes.csv", "rides.json", "route_stats.json"].map(get)
   );
   LOCATIONS = Object.fromEntries(locations.map(({ key, ...loc }) => [key, loc]));
   ROUTES = routes.map((r) => toRoute(r, stats));
-  RIDES = rides.map((r) => ({ ...r, km: num(r.km) }));
+  RIDES = rides;
   routeById = Object.fromEntries(ROUTES.map((r) => [r.id, r]));
 }
 const today = new Date().toISOString().slice(0, 10);
@@ -74,13 +74,15 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
+// A ride is a RUSA event (date, type, km, route) plus local details from rides.csv;
+// see build_routes.py. RUSA's distance wins over the route's mapped distance.
 function rideInfo(ride) {
   const route = ride.route ? routeById[ride.route] : null;
   return {
     route,
-    name: route ? route.name : ride.name,
-    km: route ? route.km : ride.km,
-    start: route ? route.start : ride.start,
+    name: route ? route.name : ride.name || "TBD",
+    km: ride.km,
+    start: ride.start || route?.start || ride.rusa_start,
   };
 }
 
@@ -223,12 +225,19 @@ function firstSentence(text, max = 170) {
   return s.length > max ? s.slice(0, max).replace(/\s+\S*$/, "") + "…" : s;
 }
 
+// "Cue sheet", or "Cue sheets 1 · 2" for a route in parts.
+function cueLinks(cues) {
+  const a = (c, label) => `<a href="${c}" target="_blank" rel="noopener">${label}</a>`;
+  return cues.length === 1 ? a(cues[0], "Cue sheet") : `Cue sheets ${cues.map((c, i) => a(c, i + 1)).join(" · ")}`;
+}
+
 // opts.blurb: show the route's description (off on a route's own page, which already shows it).
 function rideRow(ride, opts = {}) {
   const { route, name, km, start } = rideInfo(ride);
   const past = ride.date < today;
-  const title = route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : esc(name);
-  const blurb = opts.blurb !== false && route?.description ? firstSentence(route.description) : "";
+  const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : esc(name);
+  const blurb = opts.blurb === false ? "" : ride.description || (route?.description ? firstSentence(route.description) : "");
+  const finish = [ride.finish && startName(ride.finish), ride.finish_time].filter(Boolean).join(", ");
   return `
     <li class="ride${past ? " past" : ""}">
       <div class="ride-date">
@@ -241,7 +250,12 @@ function rideRow(ride, opts = {}) {
         <div class="ride-title">${title}</div>
         <div class="ride-meta">
           <span>${esc(ride.type)}</span>
+          ${ride.time ? `<span>${esc(ride.time)}</span>` : ""}
           ${start ? `<span>${esc(startName(start))}</span>` : ""}
+          ${finish ? `<span>Finish: ${esc(finish)}</span>` : ""}
+          <span>${esc(ride.fee)}</span>
+          ${route?.cues?.length ? `<span>${cueLinks(route.cues)}</span>` : ""}
+          ${ride.ebrevet ? `<span><a href="${ride.ebrevet}" target="_blank" rel="noopener">Event page</a></span>` : ""}
         </div>
         ${blurb ? `<p class="ride-blurb">${esc(blurb)}</p>` : ""}
         ${ride.note ? `<div class="ride-note">${esc(ride.note)}</div>` : ""}
@@ -288,7 +302,7 @@ function home() {
           </div>
         </div>
         <figure class="home-photo">
-          <img src="assets/photos/river-bridge-square.jpg" alt="A loaded touring bike leaning on a bridge rail over a river valley">
+          <img src="assets/photos/river-bridge-square.jpg" alt="A loaded touring bike leaning on a bridge rail over a river valley" fetchpriority="low" decoding="async">
         </figure>
       </div>
     </section>

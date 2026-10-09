@@ -1,27 +1,40 @@
-"""Check the flxrando content files and fetch RideWithGPS stats for every mapped route.
+"""Check the flxrando content files, fetch RideWithGPS stats and the RUSA event list.
 
     python3 flxrando/build_routes.py
 
-Reads site/content/{locations,routes,rides}.csv. Writes site/content/route_stats.json:
-distance, climbing and unpaved share per RideWithGPS route id, fetched only for ids not
-already in the file. Exits non-zero, listing every problem in plain English, when a
-content file has an error, so a bad edit fails the deploy instead of breaking the site.
+Reads site/content/{locations,routes,rides}.csv. Writes two files the site loads:
+
+- site/content/route_stats.json: distance, climbing and unpaved share per RideWithGPS
+  route id, fetched only for ids not already in the file.
+- site/content/rides.json: the calendar. RUSA's event list for our region is the source
+  for which rides exist and their date, type and distance; rides.csv adds local details
+  (start time, fee, links, notes) to individual RUSA events. Upcoming rides with a
+  randonneuring.org event page are checked against it.
+
+Exits non-zero, listing every problem in plain English, when a content file has an
+error, so a bad edit fails the deploy instead of breaking the site.
 """
 
 import csv
+import html
 import json
 import re
 import sys
+import urllib.parse
 import urllib.request
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 CONTENT = Path(__file__).resolve().parent / "site" / "content"
 STATS = CONTENT / "route_stats.json"
+RIDES = CONTENT / "rides.json"
 RWGPS = re.compile(r"ridewithgps\.com/routes/(\d+)")
 URL = re.compile(r"^https?://\S+$")
 PAGE = re.compile(r"^#/[a-z0-9-]+$")  # a page on this site, e.g. #/waterfalls
 TIME = re.compile(r"^(\d{1,2}:\d{2} (AM|PM)|TBD|Evening|Team choice)$")
+
+RUSA_SEARCH = "https://rusa.org/cgi-bin/eventsearch_PF.pl"
+RUSA_REGION = "30"  # NY: Central/Western
 
 COLUMNS = {
     "locations.csv": ["key", "town", "spot", "map"],
@@ -39,15 +52,16 @@ COLUMNS = {
     ],
     "rides.csv": [
         "date",
-        "time",
-        "route",
-        "name",
         "km",
+        "route",
+        "time",
+        "finish_time",
         "start",
-        "type",
+        "finish",
         "fee",
         "ebrevet",
         "link",
+        "description",
         "note",
     ],
 }
@@ -118,27 +132,26 @@ def check(locations, routes, rides, problems):
             problems.append(
                 f"rides.csv line {i}: date '{ride['date']}' must look like 2026-05-30"
             )
-        if not TIME.match(ride["time"]):
+        if not ride["km"].isdigit():
+            problems.append(f"{where}: km must be the RUSA distance, a whole number")
+        if ride["route"] and ride["route"] not in ids:
             problems.append(
-                f"{where}: time '{ride['time']}' must look like 7:30 AM"
-                " (or TBD, Evening, Team choice)"
+                f"{where}: route '{ride['route']}' is not an id in routes.csv"
             )
-        if ride["route"]:
-            if ride["route"] not in ids:
+        for col in ("time", "finish_time"):
+            if ride[col] and not TIME.match(ride[col]):
                 problems.append(
-                    f"{where}: route '{ride['route']}' is not an id in routes.csv"
+                    f"{where}: {col} '{ride[col]}' must look like 7:30 AM"
+                    " (or TBD, Evening, Team choice)"
                 )
-        elif not (ride["name"] and ride["km"]):
-            problems.append(f"{where}: give either a route, or a name and a km")
-        if ride["km"] and not ride["km"].isdigit():
-            problems.append(f"{where}: km must be a whole number")
         bad_start(ride["start"], keys, where, problems, required=False)
-        if not ride["type"]:
-            problems.append(f"{where}: type is empty")
+        bad_start(ride["finish"], keys, where, problems, required=False)
         if ride["ebrevet"] and not URL.match(ride["ebrevet"]):
             problems.append(f"{where}: ebrevet is not a link")
         if ride["link"] and not (URL.match(ride["link"]) or PAGE.match(ride["link"])):
-            problems.append(f"{where}: link is not a link or a page on this site like #/waterfalls")
+            problems.append(
+                f"{where}: link is not a link or a page on this site like #/waterfalls"
+            )
 
 
 def bad_start(start, keys, where, problems, required):
@@ -169,6 +182,195 @@ def fetch(rid: str) -> dict:
     }
 
 
+def text(cell: str) -> str:
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", cell)).split())
+
+
+def fetch_rusa() -> list[dict]:
+    """Our region's events from RUSA's event search: upcoming, plus recent past ones.
+
+    Each result row is <TR eid=...> with cells: region, type, date, distance,
+    climbing, route, start location, web site.
+    """
+    form = {"region": RUSA_REGION, "reg_type": "exact", "include_pending": "1"}
+    form |= {"start_location": "1", "sortby": "date", "submit": "search"}
+    req = urllib.request.Request(
+        RUSA_SEARCH,
+        data=urllib.parse.urlencode(form).encode(),
+        headers={"User-Agent": "flxrando-build"},
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        page = resp.read().decode("utf-8", errors="replace")
+    events = []
+    for eid, row in re.findall(r'<TR[^>]*\beid="(\d+)"[^>]*>(.*?)</TR>', page, re.S):
+        cells = re.findall(r"<TD[^>]*>(.*?)</TD>", row, re.S)
+        if len(cells) < 7:
+            raise ValueError(f"RUSA event {eid} has {len(cells)} columns, expected 8")
+        rtid = re.search(r"rtid=(\d+)", cells[5])
+        events.append(
+            {
+                "eid": eid,
+                # Type and distance cells carry extra notes (gravel rules, unpaved
+                # km) after the first tag.
+                "type": text(cells[1].split("<")[0]),
+                "date": text(cells[2]).replace("/", "-"),
+                "km": int(text(cells[3].split("<")[0])),
+                "rtid": rtid.group(1) if rtid else "",
+                # Unrouted events (team rides) give "Name<br>Town, ST" here.
+                "name": text(cells[5].split("<br>")[0]),
+                "rusa_start": text(cells[6]),
+            }
+        )
+    if not events:
+        raise ValueError("no events found; has the RUSA page layout changed?")
+    return events
+
+
+def default_fee(km: int) -> str:
+    """Club fee by distance; rides.csv `fee` overrides it."""
+    if km < 200:
+        return "Free"
+    if km < 300:
+        return "$10"
+    if km < 360:
+        return "$20"
+    if km < 400:
+        return "$36"
+    if km <= 600:
+        return "$25"
+    return "TBD"
+
+
+def calendar(events, routes, rides, problems) -> list[dict]:
+    """RUSA events joined to our routes and to the local details in rides.csv.
+
+    A rides.csv row names its event by date and km. When two events share both, the
+    row's route picks one; a row with no route then picks the event with no route.
+    """
+    by_rusa = {r["rusa"]: r["id"] for r in routes if r["rusa"]}
+    for e in events:
+        e["route"] = by_rusa.get(e["rtid"], "")
+        if e["rtid"] and not e["route"]:
+            print(
+                f"note: RUSA route {e['rtid']} ({e['name']}, {e['date']}) is not in"
+                " routes.csv; the calendar shows RUSA's name for it"
+            )
+    extras = {}
+    for i, ride in enumerate(rides, start=2):
+        where = f"rides.csv line {i} ({ride['date']}, {ride['km']} km)"
+        same = [
+            e
+            for e in events
+            if e["date"] == ride["date"] and str(e["km"]) == ride["km"]
+        ]
+        if len(same) > 1:
+            same = [e for e in same if e["route"] == ride["route"]]
+        if not same:
+            problems.append(
+                f"{where}: no RUSA event on that date with that distance"
+                f"{' and route' if ride['route'] else ''}. Was it moved or cancelled?"
+            )
+        elif len(same) > 1:
+            problems.append(
+                f"{where}: several RUSA events match; add the route to tell them apart"
+            )
+        elif same[0]["eid"] in extras:
+            problems.append(f"{where}: another line already describes this event")
+        else:
+            extras[same[0]["eid"]] = ride
+    out = []
+    for e in sorted(events, key=lambda e: (e["date"], e["km"])):
+        x = extras.get(e["eid"], {})
+        keep = (
+            "time",
+            "finish_time",
+            "start",
+            "finish",
+            "ebrevet",
+            "link",
+            "description",
+            "note",
+        )
+        out.append(
+            {k: e[k] for k in ("eid", "date", "type", "km", "route", "name")}
+            | {"rusa_start": e["rusa_start"]}
+            | {k: x.get(k, "") for k in keep}
+            | {"fee": x.get("fee") or default_fee(e["km"])}
+        )
+    return out
+
+
+def event_page_field(page: str, label: str) -> str:
+    """One value from the table on a randonneuring.org event page, or ""."""
+    m = re.search(rf"<TD>{label}</TD>\s*<TD>(.*?)</TD>", page, re.S)
+    return text(m.group(1)) if m else ""
+
+
+def check_event_pages(cal, routes, locations, problems):
+    """Log where an upcoming ride disagrees with its randonneuring.org event page.
+
+    Compares date, start time, start town, distance and the RideWithGPS route. The
+    event page's cue sheets are hosted there, so they cannot be compared by link.
+    """
+    routes = {r["id"]: r for r in routes}
+    towns = {loc["key"]: loc["town"] for loc in locations}
+    today = date.today().isoformat()
+    for ride in cal:
+        if ride["date"] < today or "randonneuring.org" not in ride["ebrevet"]:
+            continue
+        url = ride["ebrevet"]
+        req = urllib.request.Request(url, headers={"User-Agent": "flxrando-build"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                page = resp.read().decode("utf-8", errors="replace")
+        except Exception as e:  # noqa: BLE001 - validation only; don't block a deploy
+            print(f"note: could not check {url} ({e})")
+            continue
+        route = routes.get(ride["route"], {})
+        start = ride["start"] or route.get("start") or ride["rusa_start"]
+        theirs = {
+            "date": event_page_field(page, "Start Date"),
+            "start time": re.sub(
+                r" [A-Z]{3}$", "", event_page_field(page, "Start Time")
+            ),
+            "start": event_page_field(page, "Start Location"),
+            "distance": event_page_field(page, "Official Distance").removesuffix(" km"),
+            "RideWithGPS route": " ".join(
+                RWGPS.findall(event_page_field(page, "Route Editor Link URL"))
+            ),
+        }
+        try:
+            theirs["date"] = (
+                datetime.strptime(theirs["date"], "%d %B %Y").date().isoformat()
+            )
+        except ValueError:
+            pass
+        ours = {
+            "date": (ride["date"], "RUSA"),
+            "start time": (ride["time"], "rides.csv time"),
+            "start": (
+                towns.get(start, start),
+                "our start (rides.csv, else the route's)",
+            ),
+            "distance": (str(ride["km"]), "RUSA"),
+            "RideWithGPS route": (
+                " ".join(map_ids(route.get("maps", ""))),
+                f"routes.csv maps for {ride['route']}",
+            ),
+        }
+        where = f"{ride['date']} {name_of(ride, route)}"
+        for what, (value, source) in ours.items():
+            if theirs[what] and theirs[what] != value:
+                problems.append(
+                    f"{where}: randonneuring.org has {what} '{theirs[what]}',"
+                    f" {source} has '{value}' ({url})"
+                )
+
+
+def name_of(ride, route) -> str:
+    return route.get("name") or ride["name"] or "TBD"
+
+
 def main() -> int:
     problems: list[str] = []
     locations = read("locations.csv", problems)
@@ -189,12 +391,23 @@ def main() -> int:
     stats = {k: stats[k] for k in sorted(stats, key=int) if k in wanted}
     STATS.write_text(json.dumps(stats, indent=1) + "\n")
 
+    try:
+        events = fetch_rusa()
+    except Exception as e:  # noqa: BLE001 - reported to the editor as-is
+        events = []
+        problems.append(f"could not read the RUSA event list ({e})")
+    if events:
+        cal = calendar(events, routes, rides, problems)
+        RIDES.write_text(json.dumps(cal, indent=1, ensure_ascii=False) + "\n")
+        check_event_pages(cal, routes, locations, problems)
+
     if problems:
         print("The site was not updated. Fix these in flxrando/site/content:")
         print("\n".join(f"  - {p}" for p in problems))
         return 1
     print(
-        f"ok: {len(locations)} locations, {len(routes)} routes, {len(rides)} rides,"
+        f"ok: {len(locations)} locations, {len(routes)} routes,"
+        f" {len(events)} RUSA events ({len(rides)} with local details),"
         f" {len(stats)} maps"
     )
     return 0

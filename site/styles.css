@@ -105,6 +105,7 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .ride-title a:hover { color: var(--lake); text-decoration: underline; }
 .ride-meta { display: flex; flex-wrap: wrap; font-size: 0.9rem; color: var(--muted); margin-top: 0.2rem; }
 .ride-meta span + span::before { content: "·"; margin: 0 0.45rem; }
+.ride-meta a { color: var(--lake); }
 .ride-km { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--vine); line-height: 1; text-align: left; white-space: nowrap; }
 .ride-km span { font-size: 0.7rem; margin-left: 0.1rem; }
 .ride-note { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
