@@ -2,11 +2,13 @@
 
 Everything on the calendar and the routes pages comes from the three files in this folder, plus RUSA's event list for the calendar. To change one, open it here on GitHub, click the pencil icon, edit, and click "Commit changes". The site updates a few minutes later.
 
+This repository is public, including its history. Don't put anything here that shouldn't be on the website, such as private phone numbers or email addresses.
+
 Each file is a spreadsheet saved as text: one line per item, values separated by commas. A value that itself contains a comma goes inside double quotes, e.g. `"Tully, NY"`. Leave a value empty by putting nothing between the commas. You can also open the file in Excel or Google Sheets and save it back as CSV.
 
 ## The calendar: RUSA plus rides.csv
 
-The calendar lists every event RUSA has for our region (NY: Central/Western), read from the [RUSA event search](https://rusa.org/cgi-bin/eventsearch_GF.pl) each time the site is built. To add, move or cancel a ride, change it on RUSA, then rebuild the site (any commit, or "Run workflow" under the Actions tab). The date, type and distance come only from RUSA. The route comes from the RUSA route number, matched to the `rusa` column in routes.csv.
+The calendar lists every event RUSA has for our region (NY: Central/Western), read from the [RUSA event search](https://rusa.org/cgi-bin/eventsearch_GF.pl) each time the site is built. To add, move or cancel a ride, change it on RUSA, and the site picks it up at its daily rebuild (10:00 UTC). To update sooner, make any commit or click "Run workflow" under the Actions tab. The date, type and distance come only from RUSA. The route comes from the RUSA route number, matched to the `rusa` column in routes.csv.
 
 rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add.
 

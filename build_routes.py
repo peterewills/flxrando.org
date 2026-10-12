@@ -1,6 +1,6 @@
 """Check the flxrando content files, fetch RideWithGPS stats and the RUSA event list.
 
-    python3 flxrando/build_routes.py
+    python3 build_routes.py
 
 Reads site/content/{locations,routes,rides}.csv. Writes two files the site loads:
 
@@ -402,7 +402,7 @@ def main() -> int:
         check_event_pages(cal, routes, locations, problems)
 
     if problems:
-        print("The site was not updated. Fix these in flxrando/site/content:")
+        print("The site was not updated. Fix these in site/content:")
         print("\n".join(f"  - {p}" for p in problems))
         return 1
     print(
