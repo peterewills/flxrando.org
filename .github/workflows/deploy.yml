@@ -32,6 +32,9 @@ jobs:
       - name: Check content and fetch route stats and RUSA calendar
         run: python3 build_routes.py
 
+      - name: Copy index.html to every page path
+        run: python3 build_pages.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

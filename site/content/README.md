@@ -27,7 +27,7 @@ rides.csv adds our own details to a RUSA event. A ride needs a line only if it h
 - `start`, `finish`: a `key` from locations.csv or a place like `Tully, NY`. `start` is only needed when it differs from the route's start; `finish` is for team rides.
 - `fee`: only when it differs from the usual fee by distance: populaires free, 200K $10, 300K $20, 360K $36, 400K and 600K $25, longer TBD.
 - `ebrevet`: the randonneuring.org event page. For an upcoming ride, the build checks that the event page's date, start time, start town, distance and RideWithGPS route match ours, and fails if they don't.
-- `link`: a web address or a page on this site, like `#/waterfalls`. The ride's name links here instead of to the route.
+- `link`: a web address or a page on this site, like `/waterfalls`. The ride's name links here instead of to the route.
 - `description`: replaces the route's description on the calendar. `note`: a short extra line.
 - `override_date`, `cancelled`, `override_note`: last-minute changes RUSA doesn't show yet; see below.
 

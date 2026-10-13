@@ -1,2 +1,7 @@
 __pycache__/
 .DS_Store
+
+# Page copies written by build_pages.py at deploy
+site/*.html
+!site/index.html
+site/routes/

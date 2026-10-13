@@ -30,7 +30,7 @@ STATS = CONTENT / "route_stats.json"
 RIDES = CONTENT / "rides.json"
 RWGPS = re.compile(r"ridewithgps\.com/routes/(\d+)")
 URL = re.compile(r"^https?://\S+$")
-PAGE = re.compile(r"^#/[a-z0-9-]+$")  # a page on this site, e.g. #/waterfalls
+PAGE = re.compile(r"^/[a-z0-9-]+$")  # a page on this site, e.g. /waterfalls
 TIME = re.compile(r"^(\d{1,2}:\d{2} (AM|PM)|TBD|Evening|Team choice)$")
 
 RUSA_SEARCH = "https://rusa.org/cgi-bin/eventsearch_PF.pl"
@@ -174,7 +174,7 @@ def check(locations, routes, rides, problems):
             problems.append(f"{where}: ebrevet is not a link")
         if ride["link"] and not (URL.match(ride["link"]) or PAGE.match(ride["link"])):
             problems.append(
-                f"{where}: link is not a link or a page on this site like #/waterfalls"
+                f"{where}: link is not a link or a page on this site like /waterfalls"
             )
         check_override(ride, where, problems)
 

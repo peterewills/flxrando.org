@@ -49,7 +49,7 @@ locations.csv, routes.csv ──────────────────
 
 ## The front end
 
-`app.js` is one file with no build step. On load it fetches `locations.csv`, `routes.csv`, `rides.json` and `route_stats.json` from `content/`, parses the CSVs itself, and renders every page into `<main id="app">`. Pages are hash routes (`#/`, `#/about`, `#/routes`, `#/routes/<id>`, `#/calendar`, `#/lighting`, `#/brevets`, `#/awards`, `#/waterfalls`, `#/rider-info`), dispatched in `render()` at the bottom of the file. Prose pages (About, Brevets, Awards, Waterfalls, Lighting) are written directly in `app.js` as template strings.
+`app.js` is one file with no build step. On load it fetches `locations.csv`, `routes.csv`, `rides.json` and `route_stats.json` from `content/`, parses the CSVs itself, and renders every page into `<main id="app">`. Pages are paths (`/`, `/about`, `/routes`, `/routes/<id>`, `/calendar`, `/lighting`, `/brevets`, `/awards`, `/waterfalls`, `/rider-info`), switched with the History API and dispatched in `render()` at the bottom of the file. GitHub Pages has no server-side routing, so the deploy runs `build_pages.py`, which copies `index.html` to `<page>.html` for every page and route (served with a 200) and to `404.html` for anything else; `<base href="/">` keeps asset and content paths working on deeper paths. Add a new page to `PAGES` there as well as to `render()`. Old `#/...` links are moved into the path on load. Prose pages (About, Brevets, Awards, Waterfalls, Lighting) are written directly in `app.js` as template strings.
 
 External services the site talks to:
 
@@ -79,4 +79,4 @@ python3 build_routes.py
 python3 -m http.server -d site 8000   # then open http://localhost:8000
 ```
 
-The site must be served over HTTP, not opened as a file, because `app.js` fetches the content files.
+The site must be served over HTTP, not opened as a file, because `app.js` fetches the content files. `http.server` has no 404 fallback, so load pages from `/` and navigate; reloading on a deeper path 404s locally.

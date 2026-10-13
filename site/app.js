@@ -190,7 +190,7 @@ const rbaEmail = () => email("rba");
 const mailLink = (who, subject) =>
   `<a href="mailto:${email(who)}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}">${email(who)}</a>`;
 
-const RIDER_INFO_FORM = "#/rider-info";
+const RIDER_INFO_FORM = "/rider-info";
 // The sign-up form posts to the old distancerider.net script, which adds the rider to
 // Pete's rider list and emails him the details.
 const RIDER_INFO_ACTION = "https://distancerider.net/RiderInfo/RiderInfo.php";
@@ -219,7 +219,7 @@ function rideInfoBox(heading) {
       <ul class="info-links">
         <li><a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> <span class="muted">(required to ride)</span></li>
         <li><a href="https://rusa.org/pages/rulesForRiders" target="_blank" rel="noopener">RUSA rules for riders</a></li>
-        <li><a href="#/lighting">Lighting requirements</a></li>
+        <li><a href="/lighting">Lighting requirements</a></li>
         <li><a href="https://rusa.org/pages/new-member-guide" target="_blank" rel="noopener">RUSA new member guide</a></li>
       </ul>
       <ul class="info-notes">
@@ -256,7 +256,7 @@ function rideRow(ride, opts = {}) {
     route && !route.rusa ? "Draft route" : "",
     isTeam(ride) ? "Team" : "",
   ].filter(Boolean);
-  const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : esc(name);
+  const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="/routes/${route.id}">${esc(name)}</a>` : esc(name);
   const blurb = opts.blurb === false ? "" : ride.description || (route?.description ? firstSentence(route.description) : "");
   const finish = [ride.finish && startName(ride.finish), ride.finish_time].filter(Boolean).join(", ");
   return `
@@ -298,7 +298,7 @@ function upcoming(n) {
 // WNY Waterfalls feature (Routes page top, Home under Next up)
 function waterfallsFeature() {
   return `
-    <a class="wf-card" href="#/waterfalls">
+    <a class="wf-card" href="/waterfalls">
       <img src="assets/photos/waterfalls/niagara-control.jpg" alt="Riders at the Niagara Falls control" loading="lazy">
       <div class="wf-card-body">
         <p class="eyebrow">Our grand randonnée</p>
@@ -320,7 +320,7 @@ function home() {
           <p>We're a club of riders in Central and Western New York with a full calendar of brevets each year. You don't need to be super fit or own a fancy bike. We hope you'll join us for a ride!</p>
           <div class="welcome">
             <h2>New to randonneuring?</h2>
-            <a class="welcome-go" href="#/about">Welcome! Start here <span aria-hidden="true">→</span></a>
+            <a class="welcome-go" href="/about">Welcome! Start here <span aria-hidden="true">→</span></a>
           </div>
         </div>
         <figure class="home-photo">
@@ -332,7 +332,7 @@ function home() {
     <section class="home-next">
       <div class="section-head">
         <h2>Next up</h2>
-        <a href="#/calendar">Full calendar →</a>
+        <a href="/calendar">Full calendar →</a>
       </div>
       ${next.length ? `<ul class="rides">${next.map((r) => rideRow(r)).join("")}</ul>` : "<p class=\"muted\">No upcoming rides scheduled.</p>"}
     </section>
@@ -362,7 +362,7 @@ function about() {
         <li><strong>Grand randonnée</strong>: 1200 km and longer, such as our Western NY Waterfalls.</li>
         <li><strong>Flèche / Trace / Dart</strong>: team rides on routes the team designs, finishing at a common point.</li>
       </ul>
-      <p>More: <a href="#/brevets">Brevets &amp; Populaires</a>, Pete Dusel's history of the brevet and how sanctioning works · <a href="#/awards">Awards</a> you can earn along the way.</p>
+      <p>More: <a href="/brevets">Brevets &amp; Populaires</a>, Pete Dusel's history of the brevet and how sanctioning works · <a href="/awards">Awards</a> you can earn along the way.</p>
 
       <h2>FAQs</h2>
       <h3>Do I need to be super fit?</h3>
@@ -441,7 +441,7 @@ function routeTable() {
         <tbody>${list.map((r) => {
           return `
             <tr>
-              <td><a href="#/routes/${r.id}">${esc(r.name)}</a>${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</td>
+              <td><a href="/routes/${r.id}">${esc(r.name)}</a>${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</td>
               <td>${esc(startName(r.start))}</td>
               <td class="num">${r.km} km</td>
               <td class="num">${mountains(r)}</td>
@@ -455,13 +455,13 @@ function routeTable() {
 
 function routeDetail(id) {
   const r = routeById[id];
-  if (!r) return `<p>Route not found. <a href="#/routes">Back to routes</a></p>`;
+  if (!r) return `<p>Route not found. <a href="/routes">Back to routes</a></p>`;
   const dates = RIDES.filter((x) => x.route === id).sort((a, b) => a.date.localeCompare(b.date));
   const st = mapStatus(r);
   const maps = hasMap(r) ? r.rwgps.map((m) => rwgpsEmbed(m.id, m.label)).join("")
     : `<div class="map-empty">No RideWithGPS map for this route yet.${st === "cue" ? " Only the cue sheet exists." : " No cue sheet or map has been found."}</div>`;
   return `
-    <a class="back" href="#/routes">← All routes</a>
+    <a class="back" href="/routes">← All routes</a>
     <h1>${esc(r.name)}${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</h1>
     <div class="route-facts">
       <div><span>Distance</span>${r.km} km${r.unpaved ? ` (${r.unpaved} km unpaved)` : ""}</div>
@@ -588,7 +588,7 @@ function waterfalls() {
   const rw = (id, label) => `<li><a href="https://ridewithgps.com/routes/${id}" target="_blank" rel="noopener">${label}</a></li>`;
   const yt = (id, label) => `<li><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">${label}</a></li>`;
   return `
-    <a class="back" href="#/routes">← All routes</a>
+    <a class="back" href="/routes">← All routes</a>
     <article class="prose wf">
       <header class="wf-head">
         <img class="wf-medal" src="assets/photos/waterfalls/medal.jpg" alt="WNY Waterfalls finisher's medal">
@@ -626,9 +626,9 @@ function waterfalls() {
       <h2>Routes and cue sheets</h2>
       <p>Each distance has its own page here, with the maps. Except for the first segment, segments start from the Ontario control; where you start your day is up to you.</p>
       <ul>
-        <li><a href="#/routes/waterfalls-1300">1300K</a> (RUSA brevet 3405): five segments · <a href="https://distancerider.net/cues/1300LR_1_R0.01_09042024.pdf" target="_blank" rel="noopener">cue sheet</a></li>
-        <li><a href="#/routes/wny-waterfalls-1200">1200K</a> (RUSA brevet 2783): four segments · <a href="https://www.distancerider.net/cues/1200LR_1_R1.01_09042024.pdf" target="_blank" rel="noopener">1000K/1200K cue sheet</a></li>
-        <li><a href="#/routes/wny-waterfalls-1000">1000K</a> (RUSA brevet 2785): segments 1–3 of the 1200K</li>
+        <li><a href="/routes/waterfalls-1300">1300K</a> (RUSA brevet 3405): five segments · <a href="https://distancerider.net/cues/1300LR_1_R0.01_09042024.pdf" target="_blank" rel="noopener">cue sheet</a></li>
+        <li><a href="/routes/wny-waterfalls-1200">1200K</a> (RUSA brevet 2783): four segments · <a href="https://www.distancerider.net/cues/1200LR_1_R1.01_09042024.pdf" target="_blank" rel="noopener">1000K/1200K cue sheet</a></li>
+        <li><a href="/routes/wny-waterfalls-1000">1000K</a> (RUSA brevet 2785): segments 1–3 of the 1200K</li>
         <li><strong>400K:</strong> loop 1 · <strong>600K:</strong> loop 1, then a slightly changed loop 4 · <a href="https://distancerider.net/cues/WNY_Waterfalls%20400k-600k-2026.pdf" target="_blank" rel="noopener">400K/600K cue sheet</a></li>
       </ul>
       <p class="small">RideWithGPS segments:</p>
@@ -706,7 +706,7 @@ function waterfalls() {
 
 function brevetsEssay() {
   return `
-    <a class="back" href="#/about">← About</a>
+    <a class="back" href="/about">← About</a>
     <article class="prose">
       <h1>Brevets &amp; Populaires</h1>
       <p class="muted">By Pete Dusel, RBA. Written in 2010; some details may have changed since.</p>
@@ -725,13 +725,13 @@ function brevetsEssay() {
 
       <h2>RUSA sanctioned populaires</h2>
       <p>Populaires are sanctioned domestically by RUSA. They run like brevets, with cards and contrôle points, but are between 100 and 199 km. Like domestically sanctioned brevets, they count toward the distance awards. Populaires are meant as an introduction to the brevet format, and are often paired with a social event or a seminar, or used as a winter training ride.</p>
-      <p>See also: <a href="#/awards">Awards</a>.</p>
+      <p>See also: <a href="/awards">Awards</a>.</p>
     </article>`;
 }
 
 function awards() {
   return `
-    <a class="back" href="#/about">← About</a>
+    <a class="back" href="/about">← About</a>
     <article class="prose">
       <h1>Awards</h1>
       <p>Randonneurs USA and the Audax Club Parisien recognize what riders achieve over a season and over the years. Here are the main awards; the complete list, with the rules for each, is on the <a href="https://rusa.org/pages/awards" target="_blank" rel="noopener">RUSA awards page</a>.</p>
@@ -755,16 +755,14 @@ function awards() {
         <li><strong>K-Hound:</strong> ride 10,000 km in a calendar year in RUSA events and permanents, Paris-Brest-Paris, or RM sanctioned events of 1200 km and longer.</li>
         <li><strong>RUSA Cup:</strong> complete at least one of each type of RUSA event, totalling at least 5000 km, within two years.</li>
       </ul>
-      <p>These awards recognize the dedication and perseverance it takes to ride long distances, season after season. For the history behind brevets and their awards, see Pete Dusel's <a href="#/brevets">Brevets &amp; Populaires</a>.</p>
+      <p>These awards recognize the dedication and perseverance it takes to ride long distances, season after season. For the history behind brevets and their awards, see Pete Dusel's <a href="/brevets">Brevets &amp; Populaires</a>.</p>
     </article>`;
 }
 
 // ---- router ----
 
 function render() {
-  // Home links are "#/"; show the bare URL instead.
-  if (location.hash === "#/" || location.hash === "#") history.replaceState(null, "", location.pathname + location.search);
-  const parts = location.hash.replace(/^#\/?/, "").split("/");
+  const parts = location.pathname.replace(/^\/|\/$/g, "").split("/");
   const tab = parts[0] || "home";
   let html;
   if (tab === "about") html = about();
@@ -827,10 +825,28 @@ app.addEventListener("change", (e) => {
     document.getElementById("route-table").innerHTML = routeTable();
   }
 });
-window.addEventListener("hashchange", () => {
+// Pages are paths (/calendar, /routes/<id>), switched with the History API. GitHub Pages
+// serves 404.html, a copy of index.html made at deploy, for a path loaded directly.
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a");
+  if (!a || a.origin !== location.origin || a.target || /\.\w+$/.test(a.pathname)) return;
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  if (a.pathname !== location.pathname) history.pushState(null, "", a.pathname);
   render();
   window.scrollTo(0, 0);
 });
+window.addEventListener("popstate", render);
+// Old hash links (flxrando.org/#/calendar) still work: move the hash into the path.
+function fromHash() {
+  if (location.hash.startsWith("#/")) history.replaceState(null, "", location.hash.slice(1));
+}
+window.addEventListener("hashchange", () => {
+  fromHash();
+  render();
+  window.scrollTo(0, 0);
+});
+fromHash();
 document.querySelector(".banner-inner").insertAdjacentHTML("afterbegin", bannerArt());
 document.querySelectorAll("[data-email]").forEach((el) => { el.outerHTML = mailLink(el.dataset.email); });
 loadContent().then(render, (err) => {
