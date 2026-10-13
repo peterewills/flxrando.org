@@ -109,7 +109,7 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .ride-km { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--vine); line-height: 1; text-align: left; white-space: nowrap; }
 .ride-km span { font-size: 0.7rem; margin-left: 0.1rem; }
 .ride-note { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
-.ride-flag { margin-left: 0.4rem; padding: 0.05rem 0.45rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; vertical-align: middle; background: color-mix(in srgb, var(--vine) 15%, transparent); color: var(--vine); }
+.tag { margin-left: 0.4rem; padding: 0.05rem 0.45rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; vertical-align: middle; background: color-mix(in srgb, var(--vine) 15%, transparent); color: var(--vine); }
 .ride-override { margin-left: 0.3rem; font-size: 0.85rem; font-weight: 500; color: var(--vine); }
 .ride.cancelled .ride-name, .ride.cancelled .ride-name a { text-decoration: line-through; color: var(--muted); }
 .month { margin-top: 2rem; }
@@ -134,6 +134,9 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .route-table .num { text-align: right; }
 .route-table th button { font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; }
 .route-table th.num button { width: 100%; text-align: right; }
+.route-table .check { text-align: center; }
+.route-table th.check button { width: 100%; text-align: center; }
+.route-table td.check a { color: var(--lake); text-decoration: none; }
 .route-table .arrow { font-size: 0.7em; margin-left: 0.3em; color: var(--lake); }
 .route-table tbody tr:hover { background: var(--bg); }
 .route-table td a { color: var(--ink); font-weight: 500; }

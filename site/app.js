@@ -103,7 +103,10 @@ function mountains(r) {
   const n = mountainCount(fpm);
   return `<span class="mtns" title="${fpm} ft per mile" aria-label="${n} of 3 mountains, ${fpm} ft per mile">${MOUNTAIN.repeat(n)}</span>`;
 }
-const routeType = (r) => [r.rusa && "Brevet", r.perm && "Perm"].filter(Boolean).join(", ");
+// rusa: RUSA route number, so approved for brevets and populaires. perm: RUSA
+// permanent number. A route with neither is a draft.
+const isDraft = (r) => !r.rusa && !r.perm;
+const DRAFT_TAG = `<span class="tag">Draft</span>`;
 const nextRide = (r) => RIDES.filter((x) => x.route === r.id && x.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0];
 
 function fmtDate(iso, opts) {
@@ -239,7 +242,10 @@ function rideRow(ride, opts = {}) {
   const past = ride.date < today;
   const open = !past && !ride.cancelled;
   // Overrides from rides.csv: RUSA hasn't caught up with a postponement or cancellation.
-  const flag = ride.cancelled ? "Cancelled" : ride.rusa_date ? `Moved from ${fmtDate(ride.rusa_date, { month: "short", day: "numeric" })}` : "";
+  const flags = [
+    ride.cancelled ? "Cancelled" : ride.rusa_date ? `Moved from ${fmtDate(ride.rusa_date, { month: "short", day: "numeric" })}` : "",
+    route && !route.rusa ? "Draft route" : "",
+  ].filter(Boolean);
   const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : esc(name);
   const blurb = opts.blurb === false ? "" : ride.description || (route?.description ? firstSentence(route.description) : "");
   const finish = [ride.finish && startName(ride.finish), ride.finish_time].filter(Boolean).join(", ");
@@ -252,7 +258,7 @@ function rideRow(ride, opts = {}) {
       </div>
       <div class="ride-km">${nominalKm(ride.km)}</div>
       <div class="ride-main">
-        <div class="ride-title"><span class="ride-name">${title}</span>${flag ? ` <span class="ride-flag">${flag}</span>` : ""}${ride.override_note ? ` <span class="ride-override">${esc(ride.override_note)}</span>` : ""}</div>
+        <div class="ride-title"><span class="ride-name">${title}</span>${flags.map((f) => ` <span class="tag">${f}</span>`).join("")}${ride.override_note ? ` <span class="ride-override">${esc(ride.override_note)}</span>` : ""}</div>
         <div class="ride-meta">
           <span>${esc(ride.type)}</span>
           <span>${km} km</span>
@@ -373,22 +379,24 @@ const ROUTE_COLS = [
   { key: "start", label: "Start", val: (r) => startName(r.start) },
   { key: "km", label: "Distance", val: (r) => r.km, num: true },
   { key: "climb", label: "Climbing", val: (r) => ftPerMile(r) ?? -1, num: true },
-  { key: "type", label: "Type", val: routeType },
+  { key: "brevet", label: "Brevet approved", val: (r) => (r.rusa ? 1 : 0), num: true, check: true },
+  { key: "perm", label: "Permanent", val: (r) => (r.perm ? 1 : 0), num: true, check: true },
 ];
 
 function routes() {
   return `
     <h1>Routes</h1>
     ${waterfallsFeature()}
-    <p class="muted">RUSA brevet routes and permanents in Central and Western New York. Click a column to sort.</p>
+    <p class="muted">Routes in Central and Western New York: approved by RUSA for brevets, approved as permanents, and drafts. Click a column to sort.</p>
     <div class="route-controls">
       ${chips(state.routesBand, "routesBand")}
       <div class="route-filters">
         <input type="search" id="routeQuery" placeholder="Search name or start" value="${esc(state.routeQuery)}">
         <select id="routeType">
-          <option value="all"${state.routeType === "all" ? " selected" : ""}>Brevets and perms</option>
-          <option value="brevet"${state.routeType === "brevet" ? " selected" : ""}>Brevets</option>
-          <option value="perm"${state.routeType === "perm" ? " selected" : ""}>Perms</option>
+          <option value="all"${state.routeType === "all" ? " selected" : ""}>All routes</option>
+          <option value="brevet"${state.routeType === "brevet" ? " selected" : ""}>Brevet approved</option>
+          <option value="perm"${state.routeType === "perm" ? " selected" : ""}>Permanents</option>
+          <option value="draft"${state.routeType === "draft" ? " selected" : ""}>Drafts</option>
         </select>
       </div>
     </div>
@@ -401,7 +409,7 @@ function routeTable() {
   const sorts = state.routeSort.map((s) => ({ ...s, col: ROUTE_COLS.find((c) => c.key === s.key) }));
   const { key, dir } = sorts[0];
   const list = ROUTES.filter((r) => inBand(state.routesBand, r.km))
-    .filter((r) => state.routeType === "all" || (state.routeType === "brevet" ? r.rusa : r.perm))
+    .filter((r) => ({ all: true, brevet: r.rusa, perm: r.perm, draft: isDraft(r) })[state.routeType])
     .filter((r) => !q || `${r.name} ${startName(r.start)}`.toLowerCase().includes(q))
     .sort((a, b) => {
       for (const { col, dir } of sorts) {
@@ -416,18 +424,19 @@ function routeTable() {
     <div class="table-wrap">
       <table class="route-table">
         <thead><tr>${ROUTE_COLS.map((c) => `
-          <th class="${c.num ? "num" : ""}" aria-sort="${c.key === key ? (dir > 0 ? "ascending" : "descending") : "none"}">
+          <th class="${c.check ? "check" : c.num ? "num" : ""}" aria-sort="${c.key === key ? (dir > 0 ? "ascending" : "descending") : "none"}">
             <button data-sort="${c.key}">${c.label}<span class="arrow">${c.key === key ? (dir > 0 ? "▲" : "▼") : ""}</span></button>
           </th>`).join("")}
         </tr></thead>
         <tbody>${list.map((r) => {
           return `
             <tr>
-              <td><a href="#/routes/${r.id}">${esc(r.name)}</a></td>
+              <td><a href="#/routes/${r.id}">${esc(r.name)}</a>${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</td>
               <td>${esc(startName(r.start))}</td>
               <td class="num">${r.km} km</td>
               <td class="num">${mountains(r)}</td>
-              <td>${routeType(r)}</td>
+              <td class="check">${r.rusa ? `<span title="RUSA route ${r.rusa}: approved for brevets and populaires">✓</span>` : ""}</td>
+              <td class="check">${r.perm ? `<a href="https://rusa.org/cgi-bin/permview_GF.pl?permid=${r.perm}" target="_blank" rel="noopener" title="RUSA permanent ${r.perm}">✓</a>` : ""}</td>
             </tr>`;
         }).join("")}</tbody>
       </table>
@@ -443,13 +452,14 @@ function routeDetail(id) {
     : `<div class="map-empty">No RideWithGPS map for this route yet.${st === "cue" ? " Only the cue sheet exists." : " No cue sheet or map has been found."}</div>`;
   return `
     <a class="back" href="#/routes">← All routes</a>
-    <h1>${esc(r.name)}</h1>
+    <h1>${esc(r.name)}${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</h1>
     <div class="route-facts">
       <div><span>Distance</span>${r.km} km${r.unpaved ? ` (${r.unpaved} km unpaved)` : ""}</div>
       ${r.gain ? `<div><span>Climbing</span>${mountains(r)}</div>` : ""}
       <div><span>Start</span>${startLink(r.start)}</div>
-      ${r.rusa ? `<div><span>RUSA brevet</span><a href="https://rusa.org/cgi-bin/routeview_PF.pl?rtid=${r.rusa}" target="_blank" rel="noopener">#${r.rusa}</a></div>` : ""}
-      ${r.perm ? `<div><span>RUSA perm</span><a href="https://rusa.org/cgi-bin/permview_GF.pl?permid=${r.perm}" target="_blank" rel="noopener">#${r.perm}</a></div>` : ""}
+      ${r.rusa ? `<div><span>Brevet approved</span><a href="https://rusa.org/cgi-bin/routeview_PF.pl?rtid=${r.rusa}" target="_blank" rel="noopener">#${r.rusa}</a></div>` : ""}
+      ${r.perm ? `<div><span>Permanent</span><a href="https://rusa.org/cgi-bin/permview_GF.pl?permid=${r.perm}" target="_blank" rel="noopener">#${r.perm}</a></div>` : ""}
+      ${isDraft(r) ? `<div><span>Status</span>Draft, not yet approved by RUSA</div>` : ""}
       ${r.cues?.length ? `<div><span>Cue sheet${r.cues.length > 1 ? "s" : ""}</span>${r.cues.map((c, i) => `<a href="${c}" target="_blank" rel="noopener">PDF${r.cues.length > 1 ? " " + (i + 1) : ""}</a>`).join(" · ")}</div>` : ""}
     </div>
     ${r.note ? `<p class="route-note">${esc(r.note)}</p>` : ""}

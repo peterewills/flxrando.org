@@ -14,13 +14,15 @@ Where each part of a ride comes from:
 
 - Date and type (ACP brevet, RUSA populaire, ...): RUSA.
 - Class (populaire, 200K, 300K, ...): RUSA's distance. It sets the big distance label, the distance filter and the registration email subject, and is never taken from our map, which can run a little under (the 1200K map is 1199 km).
-- Route: RUSA's route number, matched to the `rusa` column in routes.csv.
+- Route: RUSA's route number, matched to the `rusa` column in routes.csv. Every route number RUSA uses must be in routes.csv, with a map, or the build fails. For an event with no route on RUSA yet, rides.csv can attach one of ours (see `route` below).
 - Exact distance (the "201 km" in the ride's details): our route, its `km` in routes.csv, else the RideWithGPS map. To reroute a ride, link the new map in routes.csv. That row may serve several dates, and relinking it changes all of them.
 
 rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add.
 
 - `date`, `km`: pick out the RUSA event, by its date and its distance as RUSA lists it (e.g. `201`, `1309`).
-- `route`: only when two RUSA events share a date and distance. Put the route `id` here; leave it empty for the event that has no route on RUSA.
+- `route`: a route `id` from routes.csv, for two cases.
+  - Two RUSA events share a date and distance: name the route to pick one; leave it empty for the event with no route on RUSA.
+  - The RUSA event has no route yet (a far-future event, say): this attaches one of ours, usually a draft. The calendar tags it "Draft route" while it has no RUSA number. When RUSA assigns the event a route, the build fails until that RUSA number is in the `rusa` column of the right routes.csv line, which makes the draft an approved route. If RUSA's route isn't the one named here, the build fails too: RUSA's route always wins.
 - `time`, `finish_time`: like `7:30 AM`, or `TBD`, `Evening`, `Team choice`. Finish time is for team rides.
 - `start`, `finish`: a `key` from locations.csv or a place like `Tully, NY`. `start` is only needed when it differs from the route's start; `finish` is for team rides.
 - `fee`: only when it differs from the usual fee by distance: populaires free, 200K $10, 300K $20, 360K $36, 400K and 600K $25, longer TBD.
@@ -47,7 +49,9 @@ One line per route.
 - `name`, `start`: `start` is either a `key` from locations.csv or a place like `Tully, NY`.
 - `maps`: the RideWithGPS link. For a route in parts, label each and separate with `;`, e.g. `Loop 1: https://ridewithgps.com/routes/123; Loop 2: https://ridewithgps.com/routes/456`. The route must be public on RideWithGPS.
 - `km`: leave empty to use the RideWithGPS distance. Fill it in to show the official distance instead, and always for a route with no map.
-- `rusa`, `perm`: RUSA brevet and permanent route numbers, if any
+- `rusa`: the RUSA route number, once RUSA has approved the route for brevets and populaires. The site shows it as "Brevet approved". A route with a `rusa` number must have a map.
+- `perm`: the RUSA permanent number, once approved as a permanent. Shown as "Permanent".
+- A route with neither is a draft, tagged "Draft" on the site. Add drafts freely: a reroute idea, or a route for an event RUSA hasn't approved yet.
 - `cues`: cue sheet links, separated by `;`
 - `description`, `note`: plain text
 

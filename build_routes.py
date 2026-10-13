@@ -71,7 +71,7 @@ COLUMNS = {
 
 
 def read(name: str, problems: list[str]) -> list[dict]:
-    """Rows of one content file, with a problem logged for wrong headers."""
+    """Rows of one content file, with a problem logged for wrong headers or rows."""
     with open(CONTENT / name, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         if reader.fieldnames != COLUMNS[name]:
@@ -79,11 +79,19 @@ def read(name: str, problems: list[str]) -> list[dict]:
                 f"{name}: the header row must be exactly: {','.join(COLUMNS[name])}"
             )
             return []
-        return [
-            {k: (v or "").strip() for k, v in row.items()}
-            for row in reader
-            if any((v or "").strip() for v in row.values())
-        ]
+        rows = []
+        for row in reader:
+            # DictReader collects values beyond the header under the key None.
+            if None in row:
+                problems.append(
+                    f"{name} line {reader.line_num}: more values than columns. A"
+                    ' value containing a comma needs double quotes, like "Tully, NY"'
+                )
+                continue
+            row = {k: (v or "").strip() for k, v in row.items()}
+            if any(row.values()):
+                rows.append(row)
+        return rows
 
 
 def map_ids(maps: str) -> list[str]:
@@ -103,6 +111,7 @@ def check(locations, routes, rides, problems):
             problems.append(f"locations.csv line {i}: map is not a link")
 
     ids = set()
+    numbers = {}  # ("rusa" | "perm", number) -> route id
     for i, r in enumerate(routes, start=2):
         where = f"routes.csv line {i} ({r['name'] or r['id']})"
         if not re.fullmatch(r"[a-z0-9-]+", r["id"]):
@@ -110,6 +119,13 @@ def check(locations, routes, rides, problems):
         if r["id"] in ids:
             problems.append(f"{where}: id '{r['id']}' is used twice")
         ids.add(r["id"])
+        for col in ("rusa", "perm"):
+            if r[col] and (col, r[col]) in numbers:
+                problems.append(
+                    f"{where}: {col} {r[col]} is also on route"
+                    f" '{numbers[col, r[col]]}'; one RUSA number, one route"
+                )
+            numbers.setdefault((col, r[col]), r["id"])
         if not r["name"]:
             problems.append(f"{where}: name is empty")
         for part in filter(None, (p.strip() for p in r["maps"].split(";"))):
@@ -119,6 +135,11 @@ def check(locations, routes, rides, problems):
                 )
         if not r["maps"] and not r["km"]:
             problems.append(f"{where}: a route with no map needs a km")
+        if r["rusa"] and not r["maps"]:
+            problems.append(
+                f"{where}: has RUSA route {r['rusa']} but no RideWithGPS map;"
+                " every brevet-approved route needs one"
+            )
         for col in ("km", "rusa", "perm"):
             if r[col] and not r[col].isdigit():
                 problems.append(f"{where}: {col} must be a whole number")
@@ -286,15 +307,19 @@ def calendar(events, routes, rides, problems) -> list[dict]:
     """RUSA events joined to our routes and to the local details in rides.csv.
 
     A rides.csv row names its event by date and km. When two events share both, the
-    row's route picks one; a row with no route then picks the event with no route.
+    row's route picks one; a row whose route RUSA doesn't use picks the event with no
+    route. For an event with no route on RUSA, the row's route attaches one of ours,
+    typically a draft. RUSA's route always wins: once RUSA assigns one, that route
+    number must be in routes.csv, and a different route in rides.csv is an error.
     """
     by_rusa = {r["rusa"]: r["id"] for r in routes if r["rusa"]}
     for e in events:
         e["route"] = by_rusa.get(e["rtid"], "")
         if e["rtid"] and not e["route"]:
-            print(
-                f"note: RUSA route {e['rtid']} ({e['name']}, {e['date']}) is not in"
-                " routes.csv; the calendar shows RUSA's name for it"
+            problems.append(
+                f"RUSA event {e['date']} {e['name']} uses RUSA route {e['rtid']}, which"
+                " no route in routes.csv has. Put that number in the rusa column of its"
+                " route (if it was a draft, the draft's line), adding the route if needed"
             )
     extras = {}
     for i, ride in enumerate(rides, start=2):
@@ -305,7 +330,9 @@ def calendar(events, routes, rides, problems) -> list[dict]:
             if e["date"] == ride["date"] and str(e["km"]) == ride["km"]
         ]
         if len(same) > 1:
-            same = [e for e in same if e["route"] == ride["route"]]
+            same = [e for e in same if e["route"] == ride["route"]] or [
+                e for e in same if not e["route"] and ride["route"]
+            ]
         if not same and (ride["override_date"] or ride["cancelled"]):
             problems.append(
                 f"{where}: no RUSA event on that date with that distance. RUSA has"
@@ -323,8 +350,14 @@ def calendar(events, routes, rides, problems) -> list[dict]:
             )
         elif same[0]["eid"] in extras:
             problems.append(f"{where}: another line already describes this event")
+        elif same[0]["route"] and ride["route"] not in ("", same[0]["route"]):
+            problems.append(
+                f"{where}: RUSA has route '{same[0]['route']}' for this event, not"
+                f" '{ride['route']}'. Clear route here, or change the event on RUSA"
+            )
         else:
             extras[same[0]["eid"]] = ride
+            same[0]["route"] = same[0]["route"] or ride["route"]
     out = []
     for e in events:
         x = extras.get(e["eid"], {})
