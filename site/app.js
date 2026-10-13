@@ -762,6 +762,8 @@ function awards() {
 // ---- router ----
 
 function render() {
+  // Home links are "#/"; show the bare URL instead.
+  if (location.hash === "#/" || location.hash === "#") history.replaceState(null, "", location.pathname + location.search);
   const parts = location.hash.replace(/^#\/?/, "").split("/");
   const tab = parts[0] || "home";
   let html;
