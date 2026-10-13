@@ -38,8 +38,10 @@ RideWithGPS route JSON ────────┘                  ─> route_s
 locations.csv, routes.csv ──────────────────────────────────────────────┘
 ```
 
-- **The calendar comes from RUSA.** `build_routes.py` scrapes RUSA's event search for our region. RUSA decides which rides exist and their date, type and distance. A `rides.csv` line attaches local details (start time, fee, links, notes) to one RUSA event, matched by date and km. To add, move or cancel a ride, change it on RUSA, not here.
-- **Routes come from `routes.csv`.** A RUSA event is linked to a route through the `rusa` column (the RUSA route number). Distance, climbing and unpaved km are fetched from each route's public RideWithGPS page.
+- **The calendar comes from RUSA.** `build_routes.py` scrapes RUSA's event search for our region. RUSA decides which rides exist, their date and type, and the distance class (populaire, 200K, ...). A `rides.csv` line attaches local details (start time, fee, links, notes) to one RUSA event, matched by date and km. To add, move or cancel a ride, change it on RUSA, not here.
+- **Routes come from `routes.csv`.** RUSA lists a route number per event, not a map; `routes.csv` links that number (its `rusa` column) to our RideWithGPS map. Distance, climbing and unpaved km are fetched from each map.
+- **Two distances, on purpose.** RUSA's event distance sets the class: the populaire/200K/300K label, the distance filter, the registration subject. The exact km shown is our route's (`routes.csv` `km`, else the map). A reroute is just a new map link in `routes.csv`; the exact km follows it and may drift from RUSA's route page, while the class can't change. Some maps run just under nominal (the 1200K map is 1199 km), which is why the class never comes from the map.
+- **Overrides cover what RUSA hasn't caught up with.** A `rides.csv` line can set `override_date` (postponed) or `cancelled`, each requiring an `override_note` that riders see. The line still names the event by RUSA's `date` and `km`, so once RUSA changes, it stops matching and the build fails until someone clears the override. For a moved ride, the randonneuring.org date check accepts either date; cancelled rides skip that check.
 - **`route_stats.json` is a cache.** The build fetches only RideWithGPS ids missing from it. CI doesn't commit its output back, so a newly added route is fetched on every build until someone runs the build locally and commits the updated file.
 - **`rides.json` is rebuilt on every build** from RUSA's current list. The committed copy is just the last local build.
 - **Validation blocks bad deploys.** The build exits non-zero, with plain-English messages by file and line, if a content file is malformed, a `rides.csv` line no longer matches a RUSA event, a RideWithGPS route isn't public, or an upcoming ride disagrees with its randonneuring.org event page (date, start time, start town, distance, route). When the build fails, the live site keeps the last good version.
@@ -57,7 +59,7 @@ External services the site talks to:
 
 ## Current state
 
-The site is a prototype, not yet the official club site. `index.html` sets `noindex, nofollow` and the footer says so. The RBA's email is blank (`RBA_EMAIL` in `app.js`), so registration shows a placeholder and the sign-up form doesn't submit. Filling in that address and removing the `noindex` tag and footer note is what makes it live.
+Contact addresses live in `EMAILS` in `app.js`, split into user and domain to slow scrapers; the footer fills them in at load. The RBA address is where Register buttons send email and what the sign-up form passes to `RiderInfo.php`. `index.html` still sets `noindex, nofollow`, so search engines don't list the site; remove that tag when the club is ready to announce it.
 
 ## Deploy
 

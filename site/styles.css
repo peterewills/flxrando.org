@@ -109,6 +109,9 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .ride-km { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--vine); line-height: 1; text-align: left; white-space: nowrap; }
 .ride-km span { font-size: 0.7rem; margin-left: 0.1rem; }
 .ride-note { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+.ride-flag { margin-left: 0.4rem; padding: 0.05rem 0.45rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; vertical-align: middle; background: color-mix(in srgb, var(--vine) 15%, transparent); color: var(--vine); }
+.ride-override { margin-left: 0.3rem; font-size: 0.85rem; font-weight: 500; color: var(--vine); }
+.ride.cancelled .ride-name, .ride.cancelled .ride-name a { text-decoration: line-through; color: var(--muted); }
 .month { margin-top: 2rem; }
 
 /* filters */
@@ -164,7 +167,6 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .footer-cols p { margin: 0; }
 .footer-cols ul { list-style: none; padding: 0; margin: 0; }
 .footer-cols li { margin-bottom: 0.45rem; line-height: 1.4; }
-.prototype-note { margin-top: 1.5rem; font-size: 0.8rem; }
 @media (max-width: 700px) { .footer-cols { grid-template-columns: 1fr; } }
 
 @media (max-width: 600px) {
@@ -199,7 +201,6 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .field em { color: var(--vine); font-style: normal; }
 .field input, .field textarea { font: inherit; padding: 0.5rem 0.65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
 .rider-form .btn { font: inherit; cursor: pointer; }
-.rider-form-msg { padding: 0.6rem 0.8rem; border-left: 3px solid var(--vine); background: var(--surface); }
 @media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } }
 
 /* home: centred headline, intro + welcome card beside a modest photo (from the Claude Design mockup) */

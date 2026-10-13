@@ -8,7 +8,14 @@ Each file is a spreadsheet saved as text: one line per item, values separated by
 
 ## The calendar: RUSA plus rides.csv
 
-The calendar lists every event RUSA has for our region (NY: Central/Western), read from the [RUSA event search](https://rusa.org/cgi-bin/eventsearch_GF.pl) each time the site is built. To add, move or cancel a ride, change it on RUSA, and the site picks it up at its daily rebuild (10:00 UTC). To update sooner, make any commit or click "Run workflow" under the Actions tab. The date, type and distance come only from RUSA. The route comes from the RUSA route number, matched to the `rusa` column in routes.csv.
+The calendar lists every event RUSA has for our region (NY: Central/Western), read from the [RUSA event search](https://rusa.org/cgi-bin/eventsearch_GF.pl) each time the site is built. To add, move or cancel a ride, change it on RUSA, and the site picks it up at its daily rebuild (10:00 UTC). To update sooner, make any commit or click "Run workflow" under the Actions tab. If RUSA can't be updated in time, see [Last-minute changes](#last-minute-changes-postponed-or-cancelled).
+
+Where each part of a ride comes from:
+
+- Date and type (ACP brevet, RUSA populaire, ...): RUSA.
+- Class (populaire, 200K, 300K, ...): RUSA's distance. It sets the big distance label, the distance filter and the registration email subject, and is never taken from our map, which can run a little under (the 1200K map is 1199 km).
+- Route: RUSA's route number, matched to the `rusa` column in routes.csv.
+- Exact distance (the "201 km" in the ride's details): our route, its `km` in routes.csv, else the RideWithGPS map. To reroute a ride, link the new map in routes.csv. That row may serve several dates, and relinking it changes all of them.
 
 rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add.
 
@@ -20,6 +27,17 @@ rides.csv adds our own details to a RUSA event. A ride needs a line only if it h
 - `ebrevet`: the randonneuring.org event page. For an upcoming ride, the build checks that the event page's date, start time, start town, distance and RideWithGPS route match ours, and fails if they don't.
 - `link`: a web address or a page on this site, like `#/waterfalls`. The ride's name links here instead of to the route.
 - `description`: replaces the route's description on the calendar. `note`: a short extra line.
+- `override_date`, `cancelled`, `override_note`: last-minute changes RUSA doesn't show yet; see below.
+
+### Last-minute changes: postponed or cancelled
+
+Change RUSA first whenever you can. When a ride is postponed or cancelled too late for that, override it on its rides.csv line:
+
+- Postponed: set `override_date` to the new date, like `2026-05-10`. Leave `date` as RUSA's date.
+- Cancelled: set `cancelled` to `yes`. The ride stays on the calendar, struck through, with no Register button.
+- Either way, `override_note` is required. Riders see it next to the ride name, after a "Moved from May 9" or "Cancelled" tag, so say why: `Rain forecast`, `Bridge closed on the route`.
+
+`date` and `km` keep naming the event as RUSA lists it; that is how the override stays tied to the right event. Once RUSA catches up (moves the event or removes it), that line no longer matches a RUSA event and the build fails, asking you to update `date` and `km` and clear the three override columns. So an override can't quietly outlive the change it covers.
 
 ## routes.csv: the route library
 

@@ -75,13 +75,15 @@ function esc(s) {
 }
 
 // A ride is a RUSA event (date, type, km, route) plus local details from rides.csv;
-// see build_routes.py. RUSA's distance wins over the route's mapped distance.
+// see build_routes.py. km is our route's distance (routes.csv, else RideWithGPS), so a
+// reroute shows up as soon as routes.csv links the new map. RUSA's distance (ride.km)
+// still sets the class: the "200km" label, the band filter, the register subject.
 function rideInfo(ride) {
   const route = ride.route ? routeById[ride.route] : null;
   return {
     route,
     name: route ? route.name : ride.name || "TBD",
-    km: ride.km,
+    km: route?.km ?? ride.km,
     start: ride.start || route?.start || ride.rusa_start,
   };
 }
@@ -169,11 +171,12 @@ function nominalKm(km) {
   return `${d}<span>km</span>`;
 }
 
-// RBA email for registration, kept in two parts and joined only when someone opens a
-// Register panel, so scrapers reading the page source never see a whole address.
-// Leave empty to show a placeholder.
-const RBA_EMAIL = { user: "", domain: "" };
-const rbaEmail = () => (RBA_EMAIL.user && RBA_EMAIL.domain ? `${RBA_EMAIL.user}@${RBA_EMAIL.domain}` : "");
+// Addresses are assembled here rather than written out in the HTML, to slow scrapers.
+const EMAILS = { rba: ["pdusel", "sprintmail.com"], webmaster: ["peter.e.wills", "gmail.com"] };
+const email = (who) => EMAILS[who].join("@");
+const rbaEmail = () => email("rba");
+const mailLink = (who, subject) =>
+  `<a href="mailto:${email(who)}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}">${email(who)}</a>`;
 
 const RIDER_INFO_FORM = "#/rider-info";
 // The sign-up form posts to the old distancerider.net script, which adds the rider to
@@ -182,7 +185,8 @@ const RIDER_INFO_ACTION = "https://distancerider.net/RiderInfo/RiderInfo.php";
 
 // Email subject for registering, e.g. "Paul's Niagara Loop 600K on Oct 10, 2026".
 function registerSubject(ride) {
-  const { name, km } = rideInfo(ride);
+  const { name } = rideInfo(ride);
+  const km = ride.km;
   const label = km < 200 ? "Populaire" : `${[1200, 1000, 600, 400, 300, 200].find((x) => km >= x)}K`;
   const named = /\d{3,4}\s?k\b/i.test(name) || /populaire/i.test(name);
   return `${name}${named ? "" : ` ${label}`} on ${fmtDate(ride.date, { month: "short", day: "numeric", year: "numeric" })}`;
@@ -190,11 +194,9 @@ function registerSubject(ride) {
 
 function registerBody(subject) {
   const email = rbaEmail();
-  const how = email
-    ? `<a class="btn primary" href="mailto:${email}?subject=${encodeURIComponent(subject)}">Email the RBA to register</a>
-       <p class="small muted">No email app? Send a message to <strong>${esc(email)}</strong> with the subject “${esc(subject)}”.</p>`
-    : `<p>Email the RBA at <strong>&lt;PETE'S EMAIL&gt;</strong> with the subject “${esc(subject)}”.</p>`;
-  return `${how}<p class="small">First ride with us? Also fill in the <a href="${RIDER_INFO_FORM}">rider info form</a>.</p>`;
+  return `<a class="btn primary" href="mailto:${email}?subject=${encodeURIComponent(subject)}">Email the RBA to register</a>
+    <p class="small muted">No email app? Send a message to <strong>${esc(email)}</strong> with the subject “${esc(subject)}”.</p>
+    <p class="small">First ride with us? Also fill in the <a href="${RIDER_INFO_FORM}">rider info form</a>.</p>`;
 }
 
 // Links and notes shown on the Calendar and About pages.
@@ -235,21 +237,25 @@ function cueLinks(cues) {
 function rideRow(ride, opts = {}) {
   const { route, name, km, start } = rideInfo(ride);
   const past = ride.date < today;
+  const open = !past && !ride.cancelled;
+  // Overrides from rides.csv: RUSA hasn't caught up with a postponement or cancellation.
+  const flag = ride.cancelled ? "Cancelled" : ride.rusa_date ? `Moved from ${fmtDate(ride.rusa_date, { month: "short", day: "numeric" })}` : "";
   const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : esc(name);
   const blurb = opts.blurb === false ? "" : ride.description || (route?.description ? firstSentence(route.description) : "");
   const finish = [ride.finish && startName(ride.finish), ride.finish_time].filter(Boolean).join(", ");
   return `
-    <li class="ride${past ? " past" : ""}">
+    <li class="ride${past ? " past" : ""}${ride.cancelled ? " cancelled" : ""}">
       <div class="ride-date">
         <span class="dow">${fmtDate(ride.date, { weekday: "short" })}</span>
         <span class="day">${fmtDate(ride.date, { day: "numeric" })}</span>
         <span class="mon">${fmtDate(ride.date, { month: "short" })}</span>
       </div>
-      <div class="ride-km" title="${km} km">${nominalKm(km)}</div>
+      <div class="ride-km">${nominalKm(ride.km)}</div>
       <div class="ride-main">
-        <div class="ride-title">${title}</div>
+        <div class="ride-title"><span class="ride-name">${title}</span>${flag ? ` <span class="ride-flag">${flag}</span>` : ""}${ride.override_note ? ` <span class="ride-override">${esc(ride.override_note)}</span>` : ""}</div>
         <div class="ride-meta">
           <span>${esc(ride.type)}</span>
+          <span>${km} km</span>
           ${ride.time ? `<span>${esc(ride.time)}</span>` : ""}
           ${start ? `<span>${esc(startName(start))}</span>` : ""}
           ${finish ? `<span>Finish: ${esc(finish)}</span>` : ""}
@@ -261,9 +267,9 @@ function rideRow(ride, opts = {}) {
         ${ride.note ? `<div class="ride-note">${esc(ride.note)}</div>` : ""}
       </div>
       <div class="ride-side">
-        ${past ? "" : `<button class="register-btn" type="button" aria-expanded="false" data-subject="${esc(registerSubject(ride))}">Register</button>`}
+        ${open ? `<button class="register-btn" type="button" aria-expanded="false" data-subject="${esc(registerSubject(ride))}">Register</button>` : ""}
       </div>
-      ${past ? "" : `<div class="register-body" hidden></div>`}
+      ${open ? `<div class="register-body" hidden></div>` : ""}
     </li>`;
 }
 
@@ -454,7 +460,7 @@ function routeDetail(id) {
 }
 
 function calendar() {
-  const rides = RIDES.filter((r) => (state.showPast || r.date >= today) && inBand(state.calBand, rideInfo(r).km))
+  const rides = RIDES.filter((r) => (state.showPast || r.date >= today) && inBand(state.calBand, r.km))
     .sort((a, b) => a.date.localeCompare(b.date));
   const byMonth = {};
   for (const r of rides) (byMonth[r.date.slice(0, 7)] ||= []).push(r);
@@ -554,7 +560,6 @@ function riderInfo() {
       </div>
       <input type="hidden" name="submitaddress" value="">
       <p class="small muted"><em>*</em> required. Your details go to the RBA only; they are not shown on this site.</p>
-      <p id="rider-form-msg" class="rider-form-msg" hidden></p>
       <button class="btn primary" type="submit">Send</button>
     </form>`;
 }
@@ -621,7 +626,7 @@ function waterfalls() {
       <p>The route passes the motels repeatedly, so there's no bag drop. There's light support: at least one vehicle on the road with common repair parts (at cost), tools, snacks and water. Our goal is as many finishers as possible, so the support vehicle concentrates on riders at the back. Riders arrange their own lodging and meals. Since many riders will leave their motels before restaurants open, there's a quick breakfast at the Ontario control, about 9 miles after Webster on every loop except the first.</p>
 
       <h2>Registering</h2>
-      <p>Interested? Contact the RBA at &lt;PETE'S EMAIL&gt; and put "WNY Waterfall" in the subject so it stands out. If you don't hear back within a few days, please write again.</p>
+      <p>Interested? Contact the RBA at ${mailLink("rba", "WNY Waterfall")} and put "WNY Waterfall" in the subject so it stands out. If you don't hear back within a few days, please write again.</p>
       <p>Ready to register? Fill in the <a href="https://www.distancerider.net/RiderInfo/WNYWaterFallRiderInfo-2026.html" target="_blank" rel="noopener">WNY Waterfalls registration form</a>. The RBA will review it, check your RUSA membership, and get back to you.</p>
 
       <h3>Qualification for the 1200K and 1300K</h3>
@@ -772,15 +777,7 @@ app.addEventListener("click", (e) => {
 });
 app.addEventListener("submit", (e) => {
   if (e.target.id !== "rider-form") return;
-  const email = rbaEmail();
-  if (!email) {
-    e.preventDefault();
-    const msg = document.getElementById("rider-form-msg");
-    msg.textContent = "Sign-up isn't connected yet on this prototype site, so nothing was sent.";
-    msg.hidden = false;
-    return;
-  }
-  e.target.elements.submitaddress.value = email;
+  e.target.elements.submitaddress.value = rbaEmail();
 });
 // Register: open the panel under the ride, filling it (and the RBA address) only now.
 app.addEventListener("click", (e) => {
@@ -813,6 +810,7 @@ window.addEventListener("hashchange", () => {
   window.scrollTo(0, 0);
 });
 document.querySelector(".banner-inner").insertAdjacentHTML("afterbegin", bannerArt());
+document.querySelectorAll("[data-email]").forEach((el) => { el.outerHTML = mailLink(el.dataset.email); });
 loadContent().then(render, (err) => {
   app.innerHTML = `<p>Could not load the site's content (${esc(err.message)}).</p>`;
 });

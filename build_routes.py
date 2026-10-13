@@ -63,6 +63,9 @@ COLUMNS = {
         "link",
         "description",
         "note",
+        "override_date",
+        "cancelled",
+        "override_note",
     ],
 }
 
@@ -152,6 +155,44 @@ def check(locations, routes, rides, problems):
             problems.append(
                 f"{where}: link is not a link or a page on this site like #/waterfalls"
             )
+        check_override(ride, where, problems)
+
+
+def check_override(ride, where, problems):
+    """Log a malformed override. Overrides are for changes RUSA hasn't caught up with.
+
+    Each needs an override_note, shown to riders, saying what changed and why.
+    """
+    moved, cancelled, note = (
+        ride["override_date"],
+        ride["cancelled"],
+        ride["override_note"],
+    )
+    if moved:
+        try:
+            date.fromisoformat(moved)
+        except ValueError:
+            problems.append(
+                f"{where}: override_date '{moved}' must look like 2026-05-30"
+            )
+        if moved == ride["date"]:
+            problems.append(
+                f"{where}: override_date is the same as date; leave it empty"
+            )
+    if cancelled and cancelled != "yes":
+        problems.append(f"{where}: cancelled must be 'yes' or empty")
+    if moved and cancelled:
+        problems.append(f"{where}: a ride can be moved or cancelled, not both")
+    if (moved or cancelled) and not note:
+        problems.append(
+            f"{where}: override_note is required with override_date or cancelled,"
+            " e.g. 'Rain forecast'"
+        )
+    if note and not (moved or cancelled):
+        problems.append(
+            f"{where}: override_note is only for a ride with override_date or"
+            " cancelled; use note for anything else"
+        )
 
 
 def bad_start(start, keys, where, problems, required):
@@ -265,7 +306,13 @@ def calendar(events, routes, rides, problems) -> list[dict]:
         ]
         if len(same) > 1:
             same = [e for e in same if e["route"] == ride["route"]]
-        if not same:
+        if not same and (ride["override_date"] or ride["cancelled"]):
+            problems.append(
+                f"{where}: no RUSA event on that date with that distance. RUSA has"
+                " probably caught up with this override: set date and km to RUSA's"
+                " and clear override_date, cancelled and override_note"
+            )
+        elif not same:
             problems.append(
                 f"{where}: no RUSA event on that date with that distance"
                 f"{' and route' if ride['route'] else ''}. Was it moved or cancelled?"
@@ -279,7 +326,7 @@ def calendar(events, routes, rides, problems) -> list[dict]:
         else:
             extras[same[0]["eid"]] = ride
     out = []
-    for e in sorted(events, key=lambda e: (e["date"], e["km"])):
+    for e in events:
         x = extras.get(e["eid"], {})
         keep = (
             "time",
@@ -296,8 +343,25 @@ def calendar(events, routes, rides, problems) -> list[dict]:
             | {"rusa_start": e["rusa_start"]}
             | {k: x.get(k, "") for k in keep}
             | {"fee": x.get("fee") or default_fee(e["km"])}
+            | override(e, x)
         )
-    return out
+    return sorted(out, key=lambda r: (r["date"], r["km"]))
+
+
+def override(event, extra) -> dict:
+    """The calendar fields a rides.csv override changes; {} for none.
+
+    rusa_date keeps RUSA's date so the site can say where a moved ride came from.
+    """
+    if extra.get("override_date"):
+        return {
+            "date": extra["override_date"],
+            "rusa_date": event["date"],
+            "override_note": extra["override_note"],
+        }
+    if extra.get("cancelled"):
+        return {"cancelled": True, "override_note": extra["override_note"]}
+    return {}
 
 
 def event_page_field(page: str, label: str) -> str:
@@ -316,7 +380,11 @@ def check_event_pages(cal, routes, locations, problems):
     towns = {loc["key"]: loc["town"] for loc in locations}
     today = date.today().isoformat()
     for ride in cal:
-        if ride["date"] < today or "randonneuring.org" not in ride["ebrevet"]:
+        if (
+            ride["date"] < today
+            or ride.get("cancelled")
+            or "randonneuring.org" not in ride["ebrevet"]
+        ):
             continue
         url = ride["ebrevet"]
         req = urllib.request.Request(url, headers={"User-Agent": "flxrando-build"})
@@ -346,7 +414,7 @@ def check_event_pages(cal, routes, locations, problems):
         except ValueError:
             pass
         ours = {
-            "date": (ride["date"], "RUSA"),
+            "date": (ride["date"], "RUSA (or rides.csv override_date)"),
             "start time": (ride["time"], "rides.csv time"),
             "start": (
                 towns.get(start, start),
@@ -359,6 +427,10 @@ def check_event_pages(cal, routes, locations, problems):
             ),
         }
         where = f"{ride['date']} {name_of(ride, route)}"
+        if theirs["date"] == ride.get("rusa_date"):
+            # Moved here but not yet on randonneuring.org; don't block a last-minute
+            # change on it.
+            del ours["date"]
         for what, (value, source) in ours.items():
             if theirs[what] and theirs[what] != value:
                 problems.append(
