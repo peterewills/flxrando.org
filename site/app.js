@@ -67,6 +67,10 @@ const BANDS = [
   { key: "1000", label: "1000K+", test: (km) => km >= 1000 },
 ];
 const inBand = (band, km) => band === "all" || BANDS.find((b) => b.key === band).test(km);
+// Team rides (flèche, trace, arrow, dart) get their own calendar chip, outside the distance bands.
+const isTeam = (ride) => /flèche|trace|arrow|dart/i.test(ride.type);
+const CAL_BANDS = [...BANDS, { key: "team", label: "Team" }];
+const inCalBand = (band, ride) => band === "all" || (band === "team" ? isTeam(ride) : !isTeam(ride) && inBand(band, ride.km));
 
 const state = { routesBand: "all", calBand: "all", showPast: false, routeSort: [{ key: "km", dir: 1 }], routeType: "all", routeQuery: "" };
 
@@ -161,17 +165,22 @@ function startLink(start) {
   return `<a href="${loc.map}" target="_blank" rel="noopener">${esc(loc.town)}</a> <span class="muted">· ${esc(loc.spot)}</span>`;
 }
 
-function chips(current, onKey) {
-  return `<div class="chips" data-chips="${onKey}">${BANDS.map(
+function chips(current, onKey, bands = BANDS) {
+  return `<div class="chips" data-chips="${onKey}">${bands.map(
     (b) => `<button class="chip${b.key === current ? " on" : ""}" data-band="${b.key}">${b.label}</button>`
   ).join("")}</div>`;
 }
 
-// Nominal event distance: populaires (< 200 km) show as "Pop.", others round down to the brevet distance.
-function nominalKm(km) {
-  if (km < 200) return `Pop.`;
-  const d = [1200, 1000, 600, 400, 300, 200].find((x) => km >= x);
-  return `${d}<span>km</span>`;
+// Distance class: the brevet distance RUSA's km rounds down to, or null for a populaire.
+// Team rides have their own minimums: 360 (flèche, arrow) and 200 (dart, trace).
+function classKm(ride) {
+  if (ride.km < 200) return null;
+  return (isTeam(ride) ? [360, 200] : [1200, 1000, 600, 400, 300, 200]).find((x) => ride.km >= x);
+}
+
+function nominalKm(ride) {
+  const d = classKm(ride);
+  return d ? `${d}<span>km</span>` : `Pop.`;
 }
 
 // Addresses are assembled here rather than written out in the HTML, to slow scrapers.
@@ -189,8 +198,8 @@ const RIDER_INFO_ACTION = "https://distancerider.net/RiderInfo/RiderInfo.php";
 // Email subject for registering, e.g. "Paul's Niagara Loop 600K on Oct 10, 2026".
 function registerSubject(ride) {
   const { name } = rideInfo(ride);
-  const km = ride.km;
-  const label = km < 200 ? "Populaire" : `${[1200, 1000, 600, 400, 300, 200].find((x) => km >= x)}K`;
+  const d = classKm(ride);
+  const label = d ? `${d}K` : "Populaire";
   const named = /\d{3,4}\s?k\b/i.test(name) || /populaire/i.test(name);
   return `${name}${named ? "" : ` ${label}`} on ${fmtDate(ride.date, { month: "short", day: "numeric", year: "numeric" })}`;
 }
@@ -245,6 +254,7 @@ function rideRow(ride, opts = {}) {
   const flags = [
     ride.cancelled ? "Cancelled" : ride.rusa_date ? `Moved from ${fmtDate(ride.rusa_date, { month: "short", day: "numeric" })}` : "",
     route && !route.rusa ? "Draft route" : "",
+    isTeam(ride) ? "Team" : "",
   ].filter(Boolean);
   const title = ride.link ? `<a href="${ride.link}">${esc(name)}</a>` : route ? `<a href="#/routes/${route.id}">${esc(name)}</a>` : esc(name);
   const blurb = opts.blurb === false ? "" : ride.description || (route?.description ? firstSentence(route.description) : "");
@@ -256,7 +266,7 @@ function rideRow(ride, opts = {}) {
         <span class="day">${fmtDate(ride.date, { day: "numeric" })}</span>
         <span class="mon">${fmtDate(ride.date, { month: "short" })}</span>
       </div>
-      <div class="ride-km">${nominalKm(ride.km)}</div>
+      <div class="ride-km">${nominalKm(ride)}</div>
       <div class="ride-main">
         <div class="ride-title"><span class="ride-name">${title}</span>${flags.map((f) => ` <span class="tag">${f}</span>`).join("")}${ride.override_note ? ` <span class="ride-override">${esc(ride.override_note)}</span>` : ""}</div>
         <div class="ride-meta">
@@ -470,7 +480,7 @@ function routeDetail(id) {
 }
 
 function calendar() {
-  const rides = RIDES.filter((r) => (state.showPast || r.date >= today) && inBand(state.calBand, r.km))
+  const rides = RIDES.filter((r) => (state.showPast || r.date >= today) && inCalBand(state.calBand, r))
     .sort((a, b) => a.date.localeCompare(b.date));
   const byMonth = {};
   for (const r of rides) (byMonth[r.date.slice(0, 7)] ||= []).push(r);
@@ -478,7 +488,7 @@ function calendar() {
     <h1>Calendar</h1>
     ${rideInfoBox("Before you ride")}
     <div class="cal-controls">
-      ${chips(state.calBand, "calBand")}
+      ${chips(state.calBand, "calBand", CAL_BANDS)}
       <label class="toggle"><input type="checkbox" id="showPast" ${state.showPast ? "checked" : ""}> Show past rides</label>
     </div>
     ${Object.entries(byMonth).map(([ym, list]) => `

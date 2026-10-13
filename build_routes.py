@@ -303,14 +303,16 @@ def default_fee(km: int) -> str:
     return "TBD"
 
 
-def calendar(events, routes, rides, problems) -> list[dict]:
+def calendar(events, routes, rides, problems, warnings) -> list[dict]:
     """RUSA events joined to our routes and to the local details in rides.csv.
 
-    A rides.csv row names its event by date and km. When two events share both, the
-    row's route picks one; a row whose route RUSA doesn't use picks the event with no
-    route. For an event with no route on RUSA, the row's route attaches one of ours,
-    typically a draft. RUSA's route always wins: once RUSA assigns one, that route
-    number must be in routes.csv, and a different route in rides.csv is an error.
+    A rides.csv row names its event by date and km, and its route explicitly. When two
+    events share date and km, the row's route picks one; a row whose route RUSA doesn't
+    use picks the event with no route. For an event with no route on RUSA, the row's
+    route attaches one of ours, typically a draft, or is empty (team rides). RUSA's
+    route always wins: once RUSA assigns one, that route number must be in routes.csv,
+    and the row's route must be that route's id. A row matching no RUSA event is a
+    warning, not a problem: RUSA drops past events from its list.
     """
     by_rusa = {r["rusa"]: r["id"] for r in routes if r["rusa"]}
     for e in events:
@@ -329,20 +331,30 @@ def calendar(events, routes, rides, problems) -> list[dict]:
             for e in events
             if e["date"] == ride["date"] and str(e["km"]) == ride["km"]
         ]
-        if len(same) > 1:
-            same = [e for e in same if e["route"] == ride["route"]] or [
-                e for e in same if not e["route"] and ride["route"]
-            ]
+        # A line with no RUSA event is stale (aged out of RUSA's list, moved or
+        # cancelled): warn and leave it off the calendar rather than fail the build.
         if not same and (ride["override_date"] or ride["cancelled"]):
-            problems.append(
+            warnings.append(
                 f"{where}: no RUSA event on that date with that distance. RUSA has"
                 " probably caught up with this override: set date and km to RUSA's"
                 " and clear override_date, cancelled and override_note"
             )
-        elif not same:
+            continue
+        if not same:
+            warnings.append(
+                f"{where}: no RUSA event on that date with that distance, so it is"
+                " not on the calendar. Delete the line if the ride is past, moved or"
+                " cancelled"
+            )
+            continue
+        if len(same) > 1:
+            same = [e for e in same if e["route"] == ride["route"]] or [
+                e for e in same if not e["route"] and ride["route"]
+            ]
+        if not same:
             problems.append(
-                f"{where}: no RUSA event on that date with that distance"
-                f"{' and route' if ride['route'] else ''}. Was it moved or cancelled?"
+                f"{where}: RUSA has several events on that date with that distance,"
+                f" none with route '{ride['route']}'"
             )
         elif len(same) > 1:
             problems.append(
@@ -350,10 +362,16 @@ def calendar(events, routes, rides, problems) -> list[dict]:
             )
         elif same[0]["eid"] in extras:
             problems.append(f"{where}: another line already describes this event")
-        elif same[0]["route"] and ride["route"] not in ("", same[0]["route"]):
+        elif same[0]["route"] and not ride["route"]:
+            problems.append(
+                f"{where}: route is empty; RUSA has route '{same[0]['route']}' for"
+                " this event, so put that id in the route column"
+            )
+        elif same[0]["route"] and ride["route"] != same[0]["route"]:
             problems.append(
                 f"{where}: RUSA has route '{same[0]['route']}' for this event, not"
-                f" '{ride['route']}'. Clear route here, or change the event on RUSA"
+                f" '{ride['route']}'. Change route here to '{same[0]['route']}', or"
+                " change the event on RUSA"
             )
         else:
             extras[same[0]["eid"]] = ride
@@ -478,6 +496,7 @@ def name_of(ride, route) -> str:
 
 def main() -> int:
     problems: list[str] = []
+    warnings: list[str] = []
     locations = read("locations.csv", problems)
     routes = read("routes.csv", problems)
     rides = read("rides.csv", problems)
@@ -502,10 +521,13 @@ def main() -> int:
         events = []
         problems.append(f"could not read the RUSA event list ({e})")
     if events:
-        cal = calendar(events, routes, rides, problems)
+        cal = calendar(events, routes, rides, problems, warnings)
         RIDES.write_text(json.dumps(cal, indent=1, ensure_ascii=False) + "\n")
         check_event_pages(cal, routes, locations, problems)
 
+    if warnings:
+        print("Warnings (these alone do not stop the site updating):")
+        print("\n".join(f"  - {w}" for w in warnings))
     if problems:
         print("The site was not updated. Fix these in site/content:")
         print("\n".join(f"  - {p}" for p in problems))

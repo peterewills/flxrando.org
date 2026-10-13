@@ -14,14 +14,14 @@ Where each part of a ride comes from:
 
 - Date and type (ACP brevet, RUSA populaire, ...): RUSA.
 - Class (populaire, 200K, 300K, ...): RUSA's distance. It sets the big distance label, the distance filter and the registration email subject, and is never taken from our map, which can run a little under (the 1200K map is 1199 km).
-- Route: RUSA's route number, matched to the `rusa` column in routes.csv. Every route number RUSA uses must be in routes.csv, with a map, or the build fails. For an event with no route on RUSA yet, rides.csv can attach one of ours (see `route` below).
+- Route: RUSA's route number, matched to the `rusa` column in routes.csv. Every route number RUSA uses must be in routes.csv, with a map, or the build fails. A rides.csv line names its route explicitly in `route`, which must agree with RUSA's; for an event with no route on RUSA yet, it can attach one of ours (see `route` below).
 - Exact distance (the "201 km" in the ride's details): our route, its `km` in routes.csv, else the RideWithGPS map. To reroute a ride, link the new map in routes.csv. That row may serve several dates, and relinking it changes all of them.
 
-rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add.
+rides.csv adds our own details to a RUSA event. A ride needs a line only if it has something to add. A line that matches no RUSA event (the ride is past and RUSA has dropped it, or it was moved or cancelled) is left off the calendar, and the build lists it as a warning without failing; delete it when convenient.
 
 - `date`, `km`: pick out the RUSA event, by its date and its distance as RUSA lists it (e.g. `201`, `1309`).
-- `route`: a route `id` from routes.csv, for two cases.
-  - Two RUSA events share a date and distance: name the route to pick one; leave it empty for the event with no route on RUSA.
+- `route`: the route `id` from routes.csv this ride uses. Required whenever RUSA has a route for the event, and it must be the routes.csv line whose `rusa` number RUSA uses; the build fails otherwise and names the id to use. Leave it empty only for an event with no route on RUSA that doesn't need one (team rides).
+  - Two RUSA events share a date and distance: the route picks between them; an empty route picks the event with no route on RUSA.
   - The RUSA event has no route yet (a far-future event, say): this attaches one of ours, usually a draft. The calendar tags it "Draft route" while it has no RUSA number. When RUSA assigns the event a route, the build fails until that RUSA number is in the `rusa` column of the right routes.csv line, which makes the draft an approved route. If RUSA's route isn't the one named here, the build fails too: RUSA's route always wins.
 - `time`, `finish_time`: like `7:30 AM`, or `TBD`, `Evening`, `Team choice`. Finish time is for team rides.
 - `start`, `finish`: a `key` from locations.csv or a place like `Tully, NY`. `start` is only needed when it differs from the route's start; `finish` is for team rides.
@@ -39,7 +39,7 @@ Change RUSA first whenever you can. When a ride is postponed or cancelled too la
 - Cancelled: set `cancelled` to `yes`. The ride stays on the calendar, struck through, with no Register button.
 - Either way, `override_note` is required. Riders see it next to the ride name, after a "Moved from May 9" or "Cancelled" tag, so say why: `Rain forecast`, `Bridge closed on the route`.
 
-`date` and `km` keep naming the event as RUSA lists it; that is how the override stays tied to the right event. Once RUSA catches up (moves the event or removes it), that line no longer matches a RUSA event and the build fails, asking you to update `date` and `km` and clear the three override columns. So an override can't quietly outlive the change it covers.
+`date` and `km` keep naming the event as RUSA lists it; that is how the override stays tied to the right event. Once RUSA catches up (moves the event or removes it), that line no longer matches a RUSA event and has no effect; the build warns, asking you to update `date` and `km` and clear the three override columns.
 
 ## routes.csv: the route library
 
@@ -63,4 +63,4 @@ Distance, climbing and unpaved km come from RideWithGPS automatically.
 
 ## If something goes wrong
 
-Every change is checked before it goes live. If a line has a mistake (a date in the wrong format, a rides.csv line that no longer matches a RUSA event), the site keeps showing the last good version, and the failed run under the repository's Actions tab lists what to fix, by file and line.
+Every change is checked before it goes live. If a line has a mistake (a date in the wrong format, a route that disagrees with RUSA), the site keeps showing the last good version, and the failed run under the repository's Actions tab lists what to fix, by file and line. Warnings appear in the same log on runs that succeed.
