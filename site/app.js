@@ -386,8 +386,8 @@ function about() {
 
 const ROUTE_COLS = [
   { key: "name", label: "Route", val: (r) => r.name },
-  { key: "start", label: "Start", val: (r) => startName(r.start) },
   { key: "km", label: "Distance", val: (r) => r.km, num: true },
+  { key: "start", label: "Start", val: (r) => startName(r.start) },
   { key: "climb", label: "Climbing", val: (r) => ftPerMile(r) ?? -1, num: true },
   { key: "brevet", label: "Brevet approved", val: (r) => (r.rusa ? 1 : 0), num: true, check: true },
   { key: "perm", label: "Permanent", val: (r) => (r.perm ? 1 : 0), num: true, check: true },
@@ -442,8 +442,8 @@ function routeTable() {
           return `
             <tr>
               <td><a href="/routes/${r.id}">${esc(r.name)}</a>${isDraft(r) ? ` ${DRAFT_TAG}` : ""}</td>
-              <td>${esc(startName(r.start))}</td>
               <td class="num">${r.km} km</td>
+              <td>${esc(startName(r.start))}</td>
               <td class="num">${mountains(r)}</td>
               <td class="check">${r.rusa ? `<span title="RUSA route ${r.rusa}: approved for brevets and populaires">✓</span>` : ""}</td>
               <td class="check">${r.perm ? `<a href="https://rusa.org/cgi-bin/permview_GF.pl?permid=${r.perm}" target="_blank" rel="noopener" title="RUSA permanent ${r.perm}">✓</a>` : ""}</td>

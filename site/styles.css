@@ -173,8 +173,14 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 @media (max-width: 700px) { .footer-cols { grid-template-columns: 1fr; } }
 
 @media (max-width: 600px) {
-  .ride { grid-template-columns: 2.75rem 3rem 1fr auto; gap: 0.25rem 0.6rem; padding: 0.7rem 0.75rem; }
-  .ride-km { font-size: 1rem; }
+  /* date down the left; distance and Register share the top row so the details get the full width */
+  .ride { grid-template-columns: 2.75rem 1fr auto; grid-template-areas: "date km side" "date main main"; gap: 0.3rem 0.75rem; padding: 0.7rem 0.75rem; align-items: start; }
+  .ride-date { grid-area: date; align-self: center; }
+  .ride-km { grid-area: km; align-self: center; font-size: 1rem; }
+  .ride-side { grid-area: side; }
+  .ride-main { grid-area: main; }
+  .ride-blurb { display: none; }
+  .route-table td:first-child { min-width: 10rem; }
   .map iframe { height: 380px; }
 }
 
