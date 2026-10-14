@@ -59,12 +59,13 @@ const today = new Date().toISOString().slice(0, 10);
 
 const BANDS = [
   { key: "all", label: "All" },
-  { key: "pop", label: "Populaires", test: (km) => km < 200 },
+  { key: "pop", label: "<200K", test: (km) => km < 200 },
   { key: "200", label: "200K", test: (km) => km >= 200 && km < 300 },
   { key: "300", label: "300K", test: (km) => km >= 300 && km < 400 },
   { key: "400", label: "400K", test: (km) => km >= 400 && km < 600 },
   { key: "600", label: "600K", test: (km) => km >= 600 && km < 1000 },
-  { key: "1000", label: "1000K+", test: (km) => km >= 1000 },
+  { key: "1000", label: "1000K", test: (km) => km >= 1000 && km < 1200 },
+  { key: "1200", label: "1200K+", test: (km) => km >= 1200 },
 ];
 const inBand = (band, km) => band === "all" || BANDS.find((b) => b.key === band).test(km);
 // Team rides (flèche, trace, arrow, dart) get their own calendar chip, outside the distance bands.
@@ -317,7 +318,7 @@ function home() {
       <div class="home-intro">
         <div class="home-intro-text">
           <p>Randonneuring is long-distance, self-supported, non-competitive cycling. Each ride has a time limit and checkpoints along the route, and you ride at your own pace.</p>
-          <p>We're a club of riders in Central and Western New York with a full calendar of brevets each year. You don't need to be super fit or own a fancy bike. We hope you'll join us for a ride!</p>
+          <p>We're a club of riders in Central and Western New York with a full calendar of events each year. You don't need to be super fit or own a fancy bike. We hope you'll join us for a ride!</p>
           <div class="welcome">
             <h2>New to randonneuring?</h2>
             <a class="welcome-go" href="/about">Welcome! Start here <span aria-hidden="true">→</span></a>
@@ -353,7 +354,7 @@ function about() {
       <p>Randonneuring is long-distance, self-supported, non-competitive cycling. Randonneuring events (called <em>brevets</em>) have a time limit, and riders check in at a specified set of controls along the route. For a fuller introduction, see the Chicago Randonneurs' <a href="https://chicagorando.org/learn-about-randonneuring/" target="_blank" rel="noopener">Learn About Randonneuring</a>.</p>
 
       <h2>About our club</h2>
-      <p>The Finger Lakes Randonneurs is a club of long-distance cycling enthusiasts who live and ride in the valleys, over the hills, around the lakes, and through the towns of Central and Western New York. We organize a full calendar of brevets each year. We hope you'll join us for a ride some time!</p>
+      <p>The Finger Lakes Randonneurs is a club of long-distance cycling enthusiasts who live and ride in the valleys, over the hills, around the lakes, and through the towns of Central and Western New York. We organize a full calendar of events each year. We hope you'll join us for a ride some time!</p>
 
       <h2>Event types</h2>
       <ul>
@@ -389,7 +390,7 @@ const ROUTE_COLS = [
   { key: "km", label: "Distance", val: (r) => r.km, num: true },
   { key: "start", label: "Start", val: (r) => startName(r.start) },
   { key: "climb", label: "Climbing", val: (r) => ftPerMile(r) ?? -1, num: true },
-  { key: "brevet", label: "Brevet approved", val: (r) => (r.rusa ? 1 : 0), num: true, check: true },
+  { key: "brevet", label: "RUSA route", val: (r) => (r.rusa ? 1 : 0), num: true, check: true },
   { key: "perm", label: "Permanent", val: (r) => (r.perm ? 1 : 0), num: true, check: true },
 ];
 
@@ -397,14 +398,14 @@ function routes() {
   return `
     <h1>Routes</h1>
     ${waterfallsFeature()}
-    <p class="muted">Routes in Central and Western New York: approved by RUSA for brevets, approved as permanents, and drafts. Click a column to sort.</p>
+    <p class="muted">Routes in Central and Western New York: RUSA routes (approved for calendar events), permanents, and drafts. Click a column to sort.</p>
     <div class="route-controls">
       ${chips(state.routesBand, "routesBand")}
       <div class="route-filters">
         <input type="search" id="routeQuery" placeholder="Search name or start" value="${esc(state.routeQuery)}">
         <select id="routeType">
           <option value="all"${state.routeType === "all" ? " selected" : ""}>All routes</option>
-          <option value="brevet"${state.routeType === "brevet" ? " selected" : ""}>Brevet approved</option>
+          <option value="brevet"${state.routeType === "brevet" ? " selected" : ""}>RUSA routes</option>
           <option value="perm"${state.routeType === "perm" ? " selected" : ""}>Permanents</option>
           <option value="draft"${state.routeType === "draft" ? " selected" : ""}>Drafts</option>
         </select>
@@ -467,7 +468,7 @@ function routeDetail(id) {
       <div><span>Distance</span>${r.km} km${r.unpaved ? ` (${r.unpaved} km unpaved)` : ""}</div>
       ${r.gain ? `<div><span>Climbing</span>${mountains(r)}</div>` : ""}
       <div><span>Start</span>${startLink(r.start)}</div>
-      ${r.rusa ? `<div><span>Brevet approved</span><a href="https://rusa.org/cgi-bin/routeview_PF.pl?rtid=${r.rusa}" target="_blank" rel="noopener">#${r.rusa}</a></div>` : ""}
+      ${r.rusa ? `<div><span>RUSA route</span><a href="https://rusa.org/cgi-bin/routeview_PF.pl?rtid=${r.rusa}" target="_blank" rel="noopener">#${r.rusa}</a></div>` : ""}
       ${r.perm ? `<div><span>Permanent</span><a href="https://rusa.org/cgi-bin/permview_GF.pl?permid=${r.perm}" target="_blank" rel="noopener">#${r.perm}</a></div>` : ""}
       ${isDraft(r) ? `<div><span>Status</span>Draft, not yet approved by RUSA</div>` : ""}
       ${r.cues?.length ? `<div><span>Cue sheet${r.cues.length > 1 ? "s" : ""}</span>${r.cues.map((c, i) => `<a href="${c}" target="_blank" rel="noopener">PDF${r.cues.length > 1 ? " " + (i + 1) : ""}</a>`).join(" · ")}</div>` : ""}

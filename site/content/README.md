@@ -49,7 +49,7 @@ One line per route.
 - `name`, `start`: `start` is either a `key` from locations.csv or a place like `Tully, NY`.
 - `maps`: the RideWithGPS link. For a route in parts, label each and separate with `;`, e.g. `Loop 1: https://ridewithgps.com/routes/123; Loop 2: https://ridewithgps.com/routes/456`. The route must be public on RideWithGPS.
 - `km`: leave empty to use the RideWithGPS distance. Fill it in to show the official distance instead, and always for a route with no map.
-- `rusa`: the RUSA route number, once RUSA has approved the route for brevets and populaires. The site shows it as "Brevet approved". A route with a `rusa` number must have a map.
+- `rusa`: the RUSA route number, once RUSA has approved the route for brevets and populaires. The site shows it as "RUSA route". A route with a `rusa` number must have a map.
 - `perm`: the RUSA permanent number, once approved as a permanent. Shown as "Permanent".
 - A route with neither is a draft, tagged "Draft" on the site. Add drafts freely: a reroute idea, or a route for an event RUSA hasn't approved yet.
 - `cues`: cue sheet links, separated by `;`
