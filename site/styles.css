@@ -70,11 +70,6 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .tabs a:hover { color: var(--ink); }
 .tabs a.active { background: var(--lake-soft); color: var(--lake); }
 
-/* logo */
-.logo .panel { fill: var(--logo-panel); }
-.logo .beam { fill: var(--logo-beam); }
-.logo .stroke { fill: none; stroke: var(--logo-ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-.logo .solid { fill: var(--logo-ink); }
 
 .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--vine); font-weight: 600; margin: 0; }
 .lede { font-size: 1.15rem; max-width: 40rem; color: var(--ink); }

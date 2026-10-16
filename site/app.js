@@ -118,36 +118,39 @@ function fmtDate(iso, opts) {
   return new Date(iso + "T12:00:00").toLocaleDateString("en-US", opts);
 }
 
-// Club logo, redrawn from the official artwork; colors come from CSS variables.
-// Master copy (fixed colors) is assets/logo.svg. For the banner, the panel, beam and
-// road run far past the viewBox and the banner clips them at the page edges.
-function bannerArt() {
+// Club logo for the banner, drawn from assets/logo.svg so that file is the only copy.
+// Its fixed colors become CSS variables (for dark mode), and the panel, beam and road
+// that start at x=20 run far past the viewBox; the banner clips them at the page edges.
+const LOGO_COLORS = {
+  "#8a9c7a": "var(--logo-panel)",
+  "#efe5c9": "var(--logo-beam)",
+  "#2c261f": "var(--logo-ink)",
+};
+
+async function bannerArt() {
+  const res = await fetch("assets/logo.svg", { cache: "no-cache" });
+  const svg = new DOMParser().parseFromString(await res.text(), "image/svg+xml").documentElement;
+  svg.querySelectorAll("metadata, title").forEach((el) => el.remove());
+  svg.removeAttribute("role");
+  svg.removeAttribute("aria-label");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "banner-art");
+  svg.setAttribute("viewBox", "260 114 240 160");
+  for (const el of svg.querySelectorAll("[fill], [stroke]")) {
+    for (const prop of ["fill", "stroke"]) {
+      const v = LOGO_COLORS[el.getAttribute(prop)];
+      if (v) el.style[prop] = v;
+    }
+  }
   const far = 4000;
-  return `
-    <svg class="logo banner-art" viewBox="260 114 240 160" aria-hidden="true">
-      <rect class="panel" x="${-far}" y="162" width="${2 * far}" height="100"/>
-      <polygon class="beam" points="268,162 ${-far},162 ${-far},262 92,262"/>
-      <rect class="solid" x="${-far}" y="262" width="${2 * far}" height="12"/>
-      <g class="stroke">
-        <circle cx="288" cy="213" r="46"/>
-        <circle cx="444" cy="213" r="46"/>
-        <path d="M274.4 165.4 A49.5 49.5 0 0 1 334.5 229.9 M395.0 219.9 A49.5 49.5 0 1 1 491.8 225.8" stroke-width="5" stroke-linecap="butt"/>
-        <path d="M288 213 L337 213 M444 213 L489.0 194" stroke-width="2.5"/>
-        <path d="M323 139 L317 160 M323 140 L406.6 140 M380 222 L406.6 140 M317 160 L380 222 M380 222 L444 213 M406.6 140 L444 213"/>
-        <path d="M317 160 L310.1 184 C306.8 195.5 297 210 288 213"/>
-        <path d="M323 139 L326.8 125.5 L305 125.5 Q298 125.5 298 132"/>
-        <path d="M406.6 140 L412.4 122"/>
-        <path d="M274 162 L314 162"/>
-        <circle cx="380" cy="222" r="11" stroke-width="5"/>
-        <path d="M380 222 L360 228" stroke-width="4"/>
-      </g>
-      <g class="solid">
-        <rect x="272" y="132" width="38" height="28" rx="4"/>
-        <path d="M394 121.5C394 119.8 396 119.2 400 118.8C410 118 422 117.2 429 117C432 117 433.5 118 433.5 120L433 124C432.6 125.2 431 125.6 429 125.4C422 124.6 416 123.8 410 123.6C403 123.4 398 123.6 396 123.4C394.6 123.2 394 122.6 394 121.5Z"/>
-        <rect x="354" y="227" width="12" height="3.5" rx="1"/>
-        <rect x="264" y="159" width="11" height="8" rx="2"/>
-      </g>
-    </svg>`;
+  for (const el of svg.querySelectorAll('rect[x="20"]')) {
+    el.setAttribute("x", -far);
+    el.setAttribute("width", 2 * far);
+  }
+  for (const el of svg.querySelectorAll("polygon")) {
+    el.setAttribute("points", el.getAttribute("points").replace(/(^|\s)20,/g, `$1${-far},`));
+  }
+  return svg;
 }
 
 function rwgpsEmbed(id, label) {
@@ -848,7 +851,7 @@ window.addEventListener("hashchange", () => {
   window.scrollTo(0, 0);
 });
 fromHash();
-document.querySelector(".banner-inner").insertAdjacentHTML("afterbegin", bannerArt());
+bannerArt().then((svg) => document.querySelector(".banner-inner").prepend(svg));
 document.querySelectorAll("[data-email]").forEach((el) => { el.outerHTML = mailLink(el.dataset.email); });
 loadContent().then(render, (err) => {
   app.innerHTML = `<p>Could not load the site's content (${esc(err.message)}).</p>`;
