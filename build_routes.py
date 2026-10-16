@@ -311,14 +311,17 @@ def calendar(events, routes, rides, problems, warnings) -> list[dict]:
     use picks the event with no route. For an event with no route on RUSA, the row's
     route attaches one of ours, typically a draft, or is empty (team rides). RUSA's
     route always wins: once RUSA assigns one, that route number must be in routes.csv,
-    and the row's route must be that route's id. A row matching no RUSA event is a
-    warning, not a problem: RUSA drops past events from its list.
+    and the row's route must be that route's id, unless the ride is past. A row whose
+    route has a RUSA number never picks an event with no route. A row matching no RUSA
+    event is a warning, not a problem: RUSA drops past events from its list. Any
+    disagreement about a past ride is also a warning, since it can't be fixed.
     """
+    today = date.today().isoformat()
     by_rusa = {r["rusa"]: r["id"] for r in routes if r["rusa"]}
     for e in events:
         e["route"] = by_rusa.get(e["rtid"], "")
         if e["rtid"] and not e["route"]:
-            problems.append(
+            (warnings if e["date"] < today else problems).append(
                 f"RUSA event {e['date']} {e['name']} uses RUSA route {e['rtid']}, which"
                 " no route in routes.csv has. Put that number in the rusa column of its"
                 " route (if it was a draft, the draft's line), adding the route if needed"
@@ -326,6 +329,8 @@ def calendar(events, routes, rides, problems, warnings) -> list[dict]:
     extras = {}
     for i, ride in enumerate(rides, start=2):
         where = f"rides.csv line {i} ({ride['date']}, {ride['km']} km)"
+        past = (ride["override_date"] or ride["date"]) < today
+        issues = warnings if past else problems
         same = [
             e
             for e in events
@@ -349,26 +354,30 @@ def calendar(events, routes, rides, problems, warnings) -> list[dict]:
             continue
         if len(same) > 1:
             same = [e for e in same if e["route"] == ride["route"]] or [
-                e for e in same if not e["route"] and ride["route"]
+                e
+                for e in same
+                if not e["route"]
+                and ride["route"]
+                and ride["route"] not in by_rusa.values()
             ]
         if not same:
-            problems.append(
+            issues.append(
                 f"{where}: RUSA has several events on that date with that distance,"
                 f" none with route '{ride['route']}'"
             )
         elif len(same) > 1:
-            problems.append(
+            issues.append(
                 f"{where}: several RUSA events match; add the route to tell them apart"
             )
         elif same[0]["eid"] in extras:
-            problems.append(f"{where}: another line already describes this event")
+            issues.append(f"{where}: another line already describes this event")
         elif same[0]["route"] and not ride["route"]:
-            problems.append(
+            issues.append(
                 f"{where}: route is empty; RUSA has route '{same[0]['route']}' for"
                 " this event, so put that id in the route column"
             )
         elif same[0]["route"] and ride["route"] != same[0]["route"]:
-            problems.append(
+            issues.append(
                 f"{where}: RUSA has route '{same[0]['route']}' for this event, not"
                 f" '{ride['route']}'. Change route here to '{same[0]['route']}', or"
                 " change the event on RUSA"
