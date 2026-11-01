@@ -252,7 +252,8 @@ def fetch_rusa() -> list[dict]:
     """Our region's events from RUSA's event search: upcoming, plus recent past ones.
 
     Each result row is <TR eid=...> with cells: region, type, date, distance,
-    climbing, route, start location, web site.
+    climbing, route, start location, web site. RUSA strikes through a cancelled
+    event's cells.
     """
     form = {"region": RUSA_REGION, "reg_type": "exact", "include_pending": "1"}
     form |= {"start_location": "1", "sortby": "date", "submit": "search"}
@@ -266,6 +267,8 @@ def fetch_rusa() -> list[dict]:
     events = []
     for eid, row in re.findall(r'<TR[^>]*\beid="(\d+)"[^>]*>(.*?)</TR>', page, re.S):
         cells = re.findall(r"<TD[^>]*>(.*?)</TD>", row, re.S)
+        cancelled = bool(re.search(r"<STRIKE>", row, re.I))
+        cells = [re.sub(r"</?STRIKE>", "", c, flags=re.I) for c in cells]
         if len(cells) < 7:
             raise ValueError(f"RUSA event {eid} has {len(cells)} columns, expected 8")
         rtid = re.search(r"rtid=(\d+)", cells[5])
@@ -281,6 +284,7 @@ def fetch_rusa() -> list[dict]:
                 # Unrouted events (team rides) give "Name<br>Town, ST" here.
                 "name": text(cells[5].split("<br>")[0]),
                 "rusa_start": text(cells[6]),
+                "cancelled": cancelled,
             }
         )
     if not events:
@@ -411,8 +415,11 @@ def calendar(events, routes, rides, problems, warnings) -> list[dict]:
 def override(event, extra) -> dict:
     """The calendar fields a rides.csv override changes; {} for none.
 
-    rusa_date keeps RUSA's date so the site can say where a moved ride came from.
+    rusa_date keeps RUSA's date so the site can say where a moved ride came from. An
+    event RUSA lists as cancelled is cancelled whatever rides.csv says.
     """
+    if event["cancelled"]:
+        return {"cancelled": True, "override_note": extra.get("override_note", "")}
     if extra.get("override_date"):
         return {
             "date": extra["override_date"],
