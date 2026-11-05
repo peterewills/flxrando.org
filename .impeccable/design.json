@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T17:16:03.880592+00:00",
+  "title": "Design System: Finger Lakes Randonneurs",
+  "extensions": {
+    "colorMeta": {
+      "seneca-lake": {
+        "role": "primary",
+        "displayName": "Seneca Lake",
+        "canonical": "#2e5e6e",
+        "oklch": "oklch(45.5% 0.058 222.2)",
+        "tonalRamp": [
+          "#000e14",
+          "#0d2831",
+          "#234551",
+          "#3a6573",
+          "#588595",
+          "#7fa6b4",
+          "#aacad6",
+          "#dbf3fc"
+        ]
+      },
+      "seneca-lake-wash": {
+        "role": "primary",
+        "displayName": "Seneca Lake Wash",
+        "canonical": "#e1eae8",
+        "oklch": "oklch(93.0% 0.010 181.4)",
+        "tonalRamp": [
+          "#090c0b",
+          "#212524",
+          "#3c4140",
+          "#585f5e",
+          "#777f7d",
+          "#99a09f",
+          "#c0c5c4",
+          "#ebf0ef"
+        ]
+      },
+      "hemlock": {
+        "role": "secondary",
+        "displayName": "Hemlock",
+        "canonical": "#3d5a36",
+        "oklch": "oklch(43.4% 0.067 139.6)",
+        "tonalRamp": [
+          "#040e03",
+          "#192915",
+          "#31462c",
+          "#4b6645",
+          "#6a8763",
+          "#8da787",
+          "#b6ccb1",
+          "#e4f4df"
+        ]
+      },
+      "barn-rust": {
+        "role": "tertiary",
+        "displayName": "Barn Rust",
+        "canonical": "#9a5530",
+        "oklch": "oklch(52.3% 0.105 47.5)",
+        "tonalRamp": [
+          "#1b0300",
+          "#3d1803",
+          "#613015",
+          "#884b2a",
+          "#ad6a47",
+          "#ca8e70",
+          "#eab79e",
+          "#ffe5d1"
+        ]
+      },
+      "almanac-paper": {
+        "role": "neutral",
+        "displayName": "Almanac Paper",
+        "canonical": "#f4efe4",
+        "oklch": "oklch(95.3% 0.016 86.4)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#26241f",
+          "#423f39",
+          "#615d55",
+          "#817d74",
+          "#a29e96",
+          "#c7c4bd",
+          "#f1eee9"
+        ]
+      },
+      "card-stock": {
+        "role": "neutral",
+        "displayName": "Card Stock",
+        "canonical": "#fffcf5",
+        "oklch": "oklch(99.1% 0.010 87.5)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252421",
+          "#41403b",
+          "#605d58",
+          "#7f7d77",
+          "#a09e99",
+          "#c6c4bf",
+          "#f0eeeb"
+        ]
+      },
+      "bark-ink": {
+        "role": "neutral",
+        "displayName": "Bark Ink",
+        "canonical": "#2c261f",
+        "oklch": "oklch(27.3% 0.015 71.4)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#27231f",
+          "#443f39",
+          "#635c55",
+          "#837c74",
+          "#a39d96",
+          "#c8c3bd",
+          "#f2eee9"
+        ]
+      },
+      "weathered-ink": {
+        "role": "neutral",
+        "displayName": "Weathered Ink",
+        "canonical": "#6e6556",
+        "oklch": "oklch(51.1% 0.026 80.6)",
+        "tonalRamp": [
+          "#0e0b06",
+          "#28231b",
+          "#453f34",
+          "#655c4f",
+          "#857c6d",
+          "#a59d90",
+          "#cac3b8",
+          "#f3eee5"
+        ]
+      },
+      "fence-line": {
+        "role": "neutral",
+        "displayName": "Fence Line",
+        "canonical": "#e0d7c5",
+        "oklch": "oklch(88.1% 0.026 84.6)",
+        "tonalRamp": [
+          "#0e0b06",
+          "#28231b",
+          "#453f34",
+          "#645d4f",
+          "#847c6d",
+          "#a59e90",
+          "#c9c3b8",
+          "#f2eee5"
+        ]
+      },
+      "logo-sage": {
+        "role": "neutral",
+        "displayName": "Logo Sage",
+        "canonical": "#8a9c7a",
+        "oklch": "oklch(66.9% 0.053 130.5)",
+        "tonalRamp": [
+          "#080d03",
+          "#1e2716",
+          "#38442d",
+          "#546347",
+          "#738464",
+          "#95a489",
+          "#bdc9b2",
+          "#e9f2e0"
+        ]
+      },
+      "logo-wheat": {
+        "role": "neutral",
+        "displayName": "Logo Wheat",
+        "canonical": "#efe5c9",
+        "oklch": "oklch(92.3% 0.039 90.7)",
+        "tonalRamp": [
+          "#0e0b03",
+          "#282416",
+          "#463f2e",
+          "#655d47",
+          "#857d65",
+          "#a69e89",
+          "#cac4b2",
+          "#f3eee1"
+        ]
+      },
+      "seneca-lake-dark": {
+        "role": "primary",
+        "displayName": "Seneca Lake (dark mode)",
+        "canonical": "#8db8c2",
+        "oklch": "oklch(75.5% 0.048 213.5)",
+        "tonalRamp": [
+          "#010e11",
+          "#11282d",
+          "#28454c",
+          "#40646d",
+          "#5e858e",
+          "#83a5ad",
+          "#aecad0",
+          "#def3f8"
+        ]
+      },
+      "seneca-lake-wash-dark": {
+        "role": "primary",
+        "displayName": "Seneca Lake Wash (dark mode)",
+        "canonical": "#1e2a2b",
+        "oklch": "oklch(27.4% 0.017 202.6)",
+        "tonalRamp": [
+          "#070c0d",
+          "#1e2626",
+          "#384243",
+          "#546061",
+          "#738081",
+          "#95a1a2",
+          "#bcc6c7",
+          "#e9f0f1"
+        ]
+      },
+      "hemlock-dark": {
+        "role": "secondary",
+        "displayName": "Hemlock (dark mode)",
+        "canonical": "#a3bf92",
+        "oklch": "oklch(77.2% 0.069 133.8)",
+        "tonalRamp": [
+          "#060e02",
+          "#1b2912",
+          "#344628",
+          "#4f6641",
+          "#6d865e",
+          "#90a783",
+          "#b8cbad",
+          "#e5f4dd"
+        ]
+      },
+      "barn-rust-dark": {
+        "role": "tertiary",
+        "displayName": "Barn Rust (dark mode)",
+        "canonical": "#d88e62",
+        "oklch": "oklch(71.2% 0.108 51.0)",
+        "tonalRamp": [
+          "#1b0300",
+          "#3d1800",
+          "#613110",
+          "#894b24",
+          "#ad6a41",
+          "#ca8f6c",
+          "#eab89b",
+          "#ffe5cf"
+        ]
+      },
+      "almanac-paper-dark": {
+        "role": "neutral",
+        "displayName": "Almanac Paper (dark mode)",
+        "canonical": "#171512",
+        "oklch": "oklch(19.7% 0.007 78.2)",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#252422",
+          "#413f3d",
+          "#5f5d5a",
+          "#7f7d79",
+          "#a09e9b",
+          "#c6c4c1",
+          "#f0eeec"
+        ]
+      },
+      "card-stock-dark": {
+        "role": "neutral",
+        "displayName": "Card Stock (dark mode)",
+        "canonical": "#201d18",
+        "oklch": "oklch(23.2% 0.010 80.6)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262420",
+          "#423f3b",
+          "#605d58",
+          "#807d77",
+          "#a19e99",
+          "#c6c4bf",
+          "#f0eeeb"
+        ]
+      },
+      "bark-ink-dark": {
+        "role": "neutral",
+        "displayName": "Bark Ink (dark mode)",
+        "canonical": "#ece5d6",
+        "oklch": "oklch(92.3% 0.021 85.9)",
+        "tonalRamp": [
+          "#0d0b07",
+          "#27241d",
+          "#443f36",
+          "#625d51",
+          "#837d70",
+          "#a39e93",
+          "#c8c4ba",
+          "#f2eee7"
+        ]
+      },
+      "weathered-ink-dark": {
+        "role": "neutral",
+        "displayName": "Weathered Ink (dark mode)",
+        "canonical": "#a69c8b",
+        "oklch": "oklch(69.7% 0.027 81.1)",
+        "tonalRamp": [
+          "#0e0b06",
+          "#28231b",
+          "#453f33",
+          "#655c4e",
+          "#857c6c",
+          "#a59d90",
+          "#cac3b8",
+          "#f3eee5"
+        ]
+      },
+      "fence-line-dark": {
+        "role": "neutral",
+        "displayName": "Fence Line (dark mode)",
+        "canonical": "#363027",
+        "oklch": "oklch(31.3% 0.018 78.0)",
+        "tonalRamp": [
+          "#0d0b07",
+          "#27231e",
+          "#443f38",
+          "#635d54",
+          "#837c72",
+          "#a39d95",
+          "#c8c3bc",
+          "#f2eee8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home page headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section and month headings."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Ride date and distance figures."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All running text."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Home intro and page ledes."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Eyebrow, date abbreviations, fact labels; uppercase."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "hover-color",
+        "value": "instant color/background change; brightness(1.1) on filled buttons",
+        "purpose": "The only motion in the system."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "600px"
+      },
+      {
+        "name": "footer",
+        "value": "700px"
+      },
+      {
+        "name": "home-intro",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call to action, e.g. on the Register panel and sign-up form.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Email the RBA</a>",
+      "css": ".ds-btn-primary{display:inline-block;padding:0.6rem 1.1rem;border-radius:8px;border:1px solid var(--lake,#2e5e6e);background:var(--lake,#2e5e6e);color:var(--bg,#f4efe4);font:500 16px/1.55 Inter,system-ui,sans-serif;text-decoration:none;transition:filter .15s}.ds-btn-primary:hover{filter:brightness(1.1)}.ds-btn-primary:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet alternative action beside a primary.",
+      "html": "<a class=\"ds-btn\" href=\"#\">View route</a>",
+      "css": ".ds-btn{display:inline-block;padding:0.6rem 1.1rem;border-radius:8px;border:1px solid var(--line,#e0d7c5);background:var(--surface,#fffcf5);color:var(--ink,#2c261f);font:500 16px/1.55 Inter,system-ui,sans-serif;text-decoration:none}.ds-btn:hover{border-color:var(--lake,#2e5e6e);color:var(--lake,#2e5e6e)}.ds-btn:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:2px}"
+    },
+    {
+      "name": "Welcome Button",
+      "kind": "button",
+      "refersTo": "button-welcome",
+      "description": "Hemlock button reserved for the newcomer path.",
+      "html": "<a class=\"ds-welcome-go\" href=\"#\">Start here</a>",
+      "css": ".ds-welcome-go{display:inline-flex;align-items:center;min-height:44px;padding:0 1.25rem;border-radius:8px;background:var(--forest,#3d5a36);color:var(--surface,#fffcf5);font:600 16px Inter,system-ui,sans-serif;text-decoration:none}.ds-welcome-go:hover{filter:brightness(1.1)}.ds-welcome-go:focus-visible{outline:2px solid var(--forest,#3d5a36);outline-offset:2px}"
+    },
+    {
+      "name": "Register Pill",
+      "kind": "button",
+      "refersTo": "register-pill",
+      "description": "Per-ride Register toggle on calendar rows.",
+      "html": "<button class=\"ds-register\" aria-expanded=\"false\">Register</button>",
+      "css": ".ds-register{font:600 0.85rem Inter,system-ui,sans-serif;color:var(--lake,#2e5e6e);background:none;border:1px solid var(--line,#e0d7c5);border-radius:999px;padding:0.2rem 0.75rem;cursor:pointer}.ds-register:hover,.ds-register[aria-expanded=true]{border-color:var(--lake,#2e5e6e);background:var(--lake-soft,#e1eae8)}.ds-register:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:2px}"
+    },
+    {
+      "name": "Navigation Tabs",
+      "kind": "nav",
+      "refersTo": "nav-tab",
+      "description": "Sticky main tab bar with pill tabs.",
+      "html": "<nav class=\"ds-tabs\"><a href=\"#\">Home</a><a href=\"#\">About</a><a href=\"#\">Routes</a><a class=\"active\" href=\"#\">Calendar</a><a href=\"#\">Facebook ↗</a></nav>",
+      "css": ".ds-tabs{display:flex;gap:0.25rem;padding:0.5rem 16px;background:var(--surface,#fffcf5);border-bottom:1px solid var(--line,#e0d7c5);overflow-x:auto;font:500 16px Inter,system-ui,sans-serif}.ds-tabs a{padding:0.4rem 0.75rem;border-radius:999px;color:var(--muted,#6e6556);text-decoration:none;white-space:nowrap}.ds-tabs a:hover{color:var(--ink,#2c261f)}.ds-tabs a.active{background:var(--lake-soft,#e1eae8);color:var(--lake,#2e5e6e)}.ds-tabs a:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:2px}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Calendar distance filters; selected chip fills Seneca Lake.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-on\">All</button><button class=\"ds-chip\">Populaire</button><button class=\"ds-chip\">200K</button><button class=\"ds-chip\">300K+</button></div>",
+      "css": ".ds-chips{display:flex;flex-wrap:wrap;gap:0.4rem}.ds-chip{font:0.9rem Inter,system-ui,sans-serif;padding:0.3rem 0.8rem;border-radius:999px;border:1px solid var(--line,#e0d7c5);background:var(--surface,#fffcf5);color:var(--ink,#2c261f);cursor:pointer}.ds-chip:hover{border-color:var(--lake,#2e5e6e)}.ds-chip.ds-on{background:var(--lake,#2e5e6e);border-color:var(--lake,#2e5e6e);color:var(--bg,#f4efe4)}.ds-chip:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:2px}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Barn Rust status tag, e.g. Draft route.",
+      "html": "<span class=\"ds-tag\">Draft route</span>",
+      "css": ".ds-tag{padding:0.05rem 0.45rem;border-radius:999px;font:600 0.75rem Inter,system-ui,sans-serif;background:color-mix(in srgb,var(--vine,#9a5530) 15%,transparent);color:var(--vine,#9a5530)}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Sign-up form and route search fields.",
+      "html": "<label class=\"ds-field\">Name <em>*</em><input placeholder=\"Your name\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:0.25rem;font:0.9rem Inter,system-ui,sans-serif;color:var(--ink,#2c261f)}.ds-field em{color:var(--vine,#9a5530);font-style:normal}.ds-field input{font:16px Inter,system-ui,sans-serif;padding:0.5rem 0.65rem;border:1px solid var(--line,#e0d7c5);border-radius:8px;background:var(--surface,#fffcf5);color:var(--ink,#2c261f)}.ds-field input:focus-visible{outline:2px solid var(--lake,#2e5e6e);outline-offset:1px}"
+    },
+    {
+      "name": "Ride Row",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The calendar's unit: serif date and Barn Rust distance, details, Register.",
+      "html": "<ul class=\"ds-rides\"><li class=\"ds-ride\"><div class=\"ds-date\"><span class=\"ds-dow\">Sat</span><span class=\"ds-day\">11</span><span class=\"ds-mon\">Jul</span></div><div class=\"ds-km\">600<span>K</span></div><div><div class=\"ds-title\"><a href=\"#\">Letchworth Cayuga</a></div><div class=\"ds-meta\"><span>7:00 AM</span><span>$25</span></div></div><button class=\"ds-reg\">Register</button></li></ul>",
+      "css": ".ds-rides{list-style:none;padding:0;margin:0;border:1px solid var(--line,#e0d7c5);border-radius:10px;background:var(--surface,#fffcf5);font:16px/1.55 Inter,system-ui,sans-serif;color:var(--ink,#2c261f)}.ds-ride{display:grid;grid-template-columns:3.25rem 3.5rem 1fr auto;gap:0.25rem 0.9rem;padding:0.8rem 1.1rem;align-items:center}.ds-date{display:flex;flex-direction:column;align-items:center;line-height:1.1}.ds-dow,.ds-mon{font-size:0.75rem;text-transform:uppercase;color:var(--muted,#6e6556)}.ds-day{font:700 1.5rem Fraunces,Georgia,serif}.ds-km{font:700 1.1rem/1 Fraunces,Georgia,serif;color:var(--vine,#9a5530)}.ds-km span{font-size:0.7rem;margin-left:0.1rem}.ds-title{font-weight:600}.ds-title a{color:var(--ink,#2c261f);text-decoration:none}.ds-title a:hover{color:var(--lake,#2e5e6e);text-decoration:underline}.ds-meta{display:flex;flex-wrap:wrap;font-size:0.9rem;color:var(--muted,#6e6556)}.ds-meta span+span::before{content:'\\00b7';margin:0 0.45rem}.ds-reg{font:600 0.85rem Inter,system-ui,sans-serif;color:var(--lake,#2e5e6e);background:none;border:1px solid var(--line,#e0d7c5);border-radius:999px;padding:0.2rem 0.75rem;cursor:pointer}.ds-reg:hover{border-color:var(--lake,#2e5e6e);background:var(--lake-soft,#e1eae8)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Long Road Almanac",
+    "overview": "**Creative North Star: \"The Long Road Almanac\"**\n\nThe site reads like a club almanac kept by people who ride all year: a calendar organized by month, routes catalogued like field notes, the landscape present in color and photographs. The palette comes from the region (lake water, hemlock, red barns, wheat and bark on warm paper) and is set on flat, quiet surfaces with no gloss. A bookish serif carries headings and the numbers riders scan for (the date, the distance). A plain sans carries everything else.\n\nDensity is moderate. The calendar and route table are compact enough to scan a season at a glance. Prose pages (About, Brevets, Lighting, Waterfalls) sit at a comfortable reading measure. Warmth comes from the materials (paper tones, serif numerals, real ride photos, the logo's bike against a sage panel), not from decoration or motion. The site is static and calm: almost no animation, only hover color shifts.\n\nLight and dark modes are both first-class. Dark mode follows the system setting and swaps every token for a night-paper equivalent; the hues stay the same and only lightness changes.",
+    "keyCharacteristics": [
+      "Warm paper ground, card-stock surfaces, bark-brown ink; never pure white or black.",
+      "Fraunces for headings and for the numbers riders scan for; Inter for everything else.",
+      "One cool primary (Seneca Lake) for action and links; Barn Rust for distances and status; Hemlock in small doses.",
+      "Flat: depth comes from paper-versus-card tone and hairline borders, never shadows.",
+      "Soft, plain shapes: pills for navigation and status, gently rounded cards and controls."
+    ],
+    "rules": [
+      {
+        "name": "The One Lake Rule",
+        "body": "Seneca Lake is the only interactive color. If something is clickable it is Seneca Lake (or sits on Seneca Lake Wash); nothing else is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rust Means Distance Rule",
+        "body": "Barn Rust marks the distance, the status, or the exception (draft, moved, cancelled, required). It is never used for links or buttons.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Pure Values Rule",
+        "body": "No `#fff` or `#000` anywhere. Paper, card stock and bark ink are the extremes.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif Numbers Rule",
+        "body": "The figures a rider scans for (date, distance, time limit) are set in Fraunces bold. Supporting numbers in tables and metadata stay in Inter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Families Rule",
+        "body": "Fraunces and Inter only. No third face, no monospace.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper and Card Rule",
+        "body": "To lift something, put it on Card Stock with a Fence Line border. To highlight it, use Seneca Lake Wash. Never use a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use the CSS custom properties in `styles.css` (`--lake`, `--forest`, `--vine`, `--bg`, `--surface`, `--ink`, `--muted`, `--line`) rather than literal colors, so dark mode follows.",
+      "**Do** set the date and distance riders scan for in Fraunces bold, with distance in Barn Rust.",
+      "**Do** lift surfaces with Card Stock and a 1px Fence Line border, and highlight with Seneca Lake Wash.",
+      "**Do** use pills for navigation, filters, tags and status, 8px for controls and 10px for containers.",
+      "**Do** use real club ride photos from `site/assets/photos/`, cropped to a fixed aspect ratio.",
+      "**Do** check every new element in both light and dark modes."
+    ],
+    "donts": [
+      "**Don't** add box shadows, gradients or glossy fills.",
+      "**Don't** use Barn Rust or Hemlock for links or general buttons; Seneca Lake is the interactive color.",
+      "**Don't** use pure white or pure black.",
+      "**Don't** introduce a third typeface.",
+      "**Don't** recolor the logo outside its own variables, or use stock imagery in place of club photos."
+    ]
+  }
+}
