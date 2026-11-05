@@ -95,11 +95,15 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .ride-date { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .ride-date .dow, .ride-date .mon { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }
 .ride-date .day { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; }
+.ride-main { min-width: 0; overflow-wrap: anywhere; }
 .ride-title { font-weight: 600; }
 .ride-title a { color: var(--ink); text-decoration: none; }
 .ride-title a:hover { color: var(--lake); text-decoration: underline; }
-.ride-meta { display: flex; flex-wrap: wrap; font-size: 0.9rem; color: var(--muted); margin-top: 0.2rem; }
-.ride-meta span + span::before { content: "·"; margin: 0 0.45rem; }
+/* when and where leads, in full ink; type, route km, fee and links follow, quieter */
+.ride-when { display: flex; flex-wrap: wrap; font-size: 0.95rem; font-weight: 500; margin-top: 0.2rem; }
+.ride-when .tba { color: var(--muted); font-weight: 400; }
+.ride-meta { display: flex; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); margin-top: 0.1rem; }
+.ride-when span + span::before, .ride-meta span + span::before { content: "·"; margin: 0 0.45rem; color: var(--muted); font-weight: 400; }
 .ride-meta a { color: var(--lake); }
 .ride-km { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--vine); line-height: 1; text-align: left; white-space: nowrap; }
 .ride-km span { font-size: 0.7rem; margin-left: 0.1rem; }
@@ -155,6 +159,7 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .map-empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); }
 
 .prose { max-width: 42rem; }
+.loading { margin: 3rem 0; color: var(--muted); }
 .prose li { margin-bottom: 0.4rem; }
 
 .site-footer { margin-top: 4rem; padding: 2rem 0 1.25rem; border-top: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; color: var(--muted); }
@@ -181,7 +186,14 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 
 /* "Before you ride" links and notes (Calendar, About) */
 .ride-info { margin: 1rem 0 1.5rem; padding: 1rem 1.25rem; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
-.ride-info h2 { margin-top: 0; font-size: 1.2rem; }
+.ride-info h2 { margin: 0; font-size: 1.2rem; }
+.ride-info summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; list-style: none; cursor: pointer; }
+.ride-info summary::-webkit-details-marker { display: none; }
+/* chevron: points down when closed, up when open */
+.ride-info summary::after { content: ""; flex: none; width: 0.5rem; height: 0.5rem; margin-right: 0.25rem; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-25%) rotate(45deg); }
+.ride-info[open] summary::after { transform: translateY(25%) rotate(-135deg); }
+.ride-info summary:hover::after { border-color: var(--ink); }
+.ride-info[open] summary { margin-bottom: 0.75rem; }
 .info-links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; list-style: none; padding: 0; margin: 0 0 0.75rem; }
 .info-links a { font-weight: 600; }
 .info-notes { margin: 0; padding-left: 1.1rem; font-size: 0.92rem; }
@@ -215,12 +227,19 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
 .home-intro-text p { margin: 0; font-size: 1.19rem; line-height: 1.65; }
 .home-photo { flex: 0 1 440px; min-width: 260px; margin: 0; }
 .home-photo img { display: block; width: 100%; height: auto; aspect-ratio: 744 / 728; object-fit: cover; border-radius: var(--radius); }
-.welcome { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center; justify-content: space-between; margin-top: 0.25rem; padding: 1.1rem 1.5rem; border-radius: var(--radius); background: var(--lake-soft); }
+.welcome { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center; justify-content: center; text-align: center; margin-top: 0.25rem; padding: 1.1rem 1.5rem; border-radius: var(--radius); background: var(--lake-soft); }
 .welcome h2 { margin: 0; font-size: 1.4rem; color: var(--forest); }
 .welcome-go { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1.25rem; border-radius: 8px; background: var(--forest); color: var(--surface); font-weight: 600; text-decoration: none; }
 .welcome-go:hover { filter: brightness(1.1); }
 .home-next { margin-top: 4rem; }
-@media (max-width: 760px) { .home-hero { padding-top: 2rem; } .home-intro { gap: 2rem; } .home-photo { flex-basis: 100%; } }
+@media (max-width: 760px) {
+  .home-hero { padding-top: 1.75rem; gap: 1.5rem; }
+  .home-intro { gap: 1.5rem; }
+  .home-intro-text p { font-size: 1.1rem; }
+  .home-photo { flex-basis: 100%; }
+  .home-photo img { aspect-ratio: 3 / 2; }
+  .home-next { margin-top: 2.5rem; }
+}
 
 /* WNY Waterfalls: feature card on Routes and the event page */
 .wf-card { display: grid; grid-template-columns: 2fr 3fr; gap: 1.5rem; align-items: center; margin: 0.5rem 0 1.75rem; color: var(--ink); text-decoration: none; }
@@ -255,3 +274,16 @@ h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
   .wf-head { flex-direction: column; align-items: flex-start; }
 }
 .home-feature { margin-top: 3rem; }
+
+/* About: "Your first ride", the newcomer path. Hemlock numerals mark it as the newcomer's thread. */
+.first-ride { scroll-margin-top: 4rem; }
+.steps { list-style: none; padding: 0; margin: 1.25rem 0; }
+.prose .steps > li { position: relative; margin: 0; padding: 1rem 0 1rem 2.75rem; border-top: 1px solid var(--line); counter-increment: step; }
+.steps > li:first-child { border-top: 0; padding-top: 0.25rem; }
+.steps > li::before { content: counter(step); position: absolute; left: 0.25rem; top: 0.85rem; font-family: var(--serif); font-size: 1.75rem; font-weight: 700; line-height: 1; color: var(--forest); }
+.steps > li:first-child::before { top: 0.1rem; }
+.steps { counter-reset: step; }
+.steps h3 { margin: 0 0 0.3rem; font-size: 1.15rem; }
+.steps p { margin: 0; }
+.steps .rides { margin-top: 0.9rem; }
+.prose .steps .ride { margin: 0; }

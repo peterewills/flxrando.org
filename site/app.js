@@ -55,11 +55,12 @@ async function loadContent() {
   RIDES = rides;
   routeById = Object.fromEntries(ROUTES.map((r) => [r.id, r]));
 }
-const today = new Date().toISOString().slice(0, 10);
+// The club's calendar day, not UTC's: in UTC, an evening-start ride would turn "past" at 7–8pm Eastern.
+const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
 const BANDS = [
   { key: "all", label: "All" },
-  { key: "pop", label: "<200K", test: (km) => km < 200 },
+  { key: "pop", label: "Populaire", test: (km) => km < 200 },
   { key: "200", label: "200K", test: (km) => km >= 200 && km < 300 },
   { key: "300", label: "300K", test: (km) => km >= 300 && km < 400 },
   { key: "400", label: "400K", test: (km) => km >= 400 && km < 600 },
@@ -73,7 +74,7 @@ const isTeam = (ride) => /flèche|trace|arrow|dart/i.test(ride.type);
 const CAL_BANDS = [...BANDS, { key: "team", label: "Team" }];
 const inCalBand = (band, ride) => band === "all" || (band === "team" ? isTeam(ride) : !isTeam(ride) && inBand(band, ride.km));
 
-const state = { routesBand: "all", calBand: "all", showPast: false, routeSort: [{ key: "km", dir: 1 }], routeType: "all", routeQuery: "" };
+const state = { infoOpen: false, routesBand: "all", calBand: "all", showPast: false, routeSort: [{ key: "km", dir: 1 }], routeType: "all", routeQuery: "" };
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -129,6 +130,7 @@ const LOGO_COLORS = {
 
 async function bannerArt() {
   const res = await fetch("assets/logo.svg", { cache: "no-cache" });
+  if (!res.ok) throw new Error(`assets/logo.svg: ${res.status}`);
   const svg = new DOMParser().parseFromString(await res.text(), "image/svg+xml").documentElement;
   svg.querySelectorAll("metadata, title").forEach((el) => el.remove());
   svg.removeAttribute("role");
@@ -169,6 +171,13 @@ function startLink(start) {
   return `<a href="${loc.map}" target="_blank" rel="noopener">${esc(loc.town)}</a> <span class="muted">· ${esc(loc.spot)}</span>`;
 }
 
+// Where a ride starts, for its calendar row: the town, then the exact spot linked to its map.
+function startPlace(start) {
+  const loc = LOCATIONS[start];
+  if (!loc) return [esc(start ?? "")];
+  return [esc(loc.town), `<a href="${loc.map}" target="_blank" rel="noopener">${esc(loc.spot)}</a>`];
+}
+
 function chips(current, onKey, bands = BANDS) {
   return `<div class="chips" data-chips="${onKey}">${bands.map(
     (b) => `<button class="chip${b.key === current ? " on" : ""}" data-band="${b.key}">${b.label}</button>`
@@ -184,7 +193,7 @@ function classKm(ride) {
 
 function nominalKm(ride) {
   const d = classKm(ride);
-  return d ? `${d}<span>km</span>` : `Pop.`;
+  return `${d ?? ride.km}<span>km</span>`;
 }
 
 // Addresses are assembled here rather than written out in the HTML, to slow scrapers.
@@ -218,8 +227,8 @@ function registerBody(subject) {
 // Links and notes shown on the Calendar and About pages.
 function rideInfoBox(heading) {
   return `
-    <section class="ride-info">
-      <h2>${heading}</h2>
+    <details class="ride-info"${state.infoOpen ? " open" : ""}>
+      <summary><h2>${heading}</h2></summary>
       <ul class="info-links">
         <li><a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> <span class="muted">(required to ride)</span></li>
         <li><a href="https://rusa.org/pages/rulesForRiders" target="_blank" rel="noopener">RUSA rules for riders</a></li>
@@ -232,7 +241,7 @@ function rideInfoBox(heading) {
         <li><strong>Cue sheets on this site are unofficial.</strong> Pick up the official cue sheet at the start.</li>
         <li>Any event may be cancelled or rescheduled up to its start.</li>
       </ul>
-    </section>`;
+    </details>`;
 }
 
 // First sentence of a route description, for the calendar.
@@ -273,11 +282,13 @@ function rideRow(ride, opts = {}) {
       <div class="ride-km">${nominalKm(ride)}</div>
       <div class="ride-main">
         <div class="ride-title"><span class="ride-name">${title}</span>${flags.map((f) => ` <span class="tag">${f}</span>`).join("")}${ride.override_note ? ` <span class="ride-override">${esc(ride.override_note)}</span>` : ""}</div>
+        <div class="ride-when">
+          ${ride.time ? `<span>${esc(ride.time)}</span>` : past ? "" : `<span class="tba">Start time TBA</span>`}
+          ${start ? startPlace(start).map((p) => `<span>${p}</span>`).join("") : ""}
+        </div>
         <div class="ride-meta">
           <span>${esc(ride.type)}</span>
-          <span>${km} km</span>
-          ${ride.time ? `<span>${esc(ride.time)}</span>` : ""}
-          ${start ? `<span>${esc(startName(start))}</span>` : ""}
+          <span>Route ${km} km</span>
           ${finish ? `<span>Finish: ${esc(finish)}</span>` : ""}
           <span>${esc(ride.fee)}</span>
           ${route?.cues?.length ? `<span>${cueLinks(route.cues)}</span>` : ""}
@@ -293,9 +304,21 @@ function rideRow(ride, opts = {}) {
     </li>`;
 }
 
+// The next n rides that are going ahead. Cancelled rides in that span stay in the list, so
+// riders still see the cancellation, but don't take one of the n places.
 function upcoming(n) {
-  return RIDES.filter((r) => r.date >= today).sort((a, b) => a.date.localeCompare(b.date)).slice(0, n);
+  const out = [];
+  let going = 0;
+  for (const r of RIDES.filter((r) => r.date >= today).sort((a, b) => a.date.localeCompare(b.date))) {
+    if (going >= n) break;
+    out.push(r);
+    if (!r.cancelled) going++;
+  }
+  return out;
 }
+
+const isPopulaire = (ride) => ride.km < 200 && !isTeam(ride);
+const daysUntil = (date) => Math.round((new Date(date) - new Date(today)) / 864e5);
 
 // ---- pages ----
 
@@ -324,7 +347,7 @@ function home() {
           <p>We're a club of riders in Central and Western New York with a full calendar of events each year. You don't need to be super fit or own a fancy bike. We hope you'll join us for a ride!</p>
           <div class="welcome">
             <h2>New to randonneuring?</h2>
-            <a class="welcome-go" href="/about">Welcome! Start here <span aria-hidden="true">→</span></a>
+            <a class="welcome-go" href="/about#first-ride">Welcome! Start here <span aria-hidden="true">→</span></a>
           </div>
         </div>
         <figure class="home-photo">
@@ -344,6 +367,35 @@ function home() {
     <section class="home-feature">${waterfallsFeature()}</section>`;
 }
 
+// The newcomer path: join RUSA, sign up with the club, register for a populaire.
+function firstRide() {
+  const next = upcoming(Infinity).find((r) => isPopulaire(r) && !r.cancelled);
+  const wait = next ? daysUntil(next.date) : Infinity;
+  return `
+      <section id="first-ride" class="first-ride">
+        <h2>Your first ride</h2>
+        <p>Most riders start with a populaire: a ride of 100 to 199&nbsp;km, and free to enter. Three steps get you to the start.</p>
+        <ol class="steps" role="list">
+          <li>
+            <h3>Join Randonneurs USA</h3>
+            <p>Every rider needs an active RUSA membership, which covers the event insurance. <a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">Join on the RUSA website</a> and you'll get a RUSA number.</p>
+          </li>
+          <li>
+            <h3>Fill in the new rider sign-up</h3>
+            <p>Do this once, before your first event, so your brevet card can be printed ahead. Have your RUSA number handy. <a href="${RIDER_INFO_FORM}">New rider sign-up</a></p>
+          </li>
+          <li>
+            <h3>Pick a populaire and register</h3>
+            <p>Press Register on the ride to email the RBA. Populaires are free; brevets cost $10 to $25 depending on distance, paid in cash at the start.</p>
+            ${next
+              ? `<ul class="rides">${rideRow(next)}</ul>`
+              : `<p>The next populaire isn't on the <a href="/calendar">calendar</a> yet.</p>`}
+          </li>
+        </ol>
+        ${wait > 30 ? `<p>That's a while off. In the meantime, meet the club in our <a href="https://www.facebook.com/groups/927013607977742" target="_blank" rel="noopener">Facebook group</a>.</p>` : ""}
+      </section>`;
+}
+
 function about() {
   return `
     <article class="prose">
@@ -358,6 +410,8 @@ function about() {
 
       <h2>About our club</h2>
       <p>The Finger Lakes Randonneurs is a club of long-distance cycling enthusiasts who live and ride in the valleys, over the hills, around the lakes, and through the towns of Central and Western New York. We organize a full calendar of events each year. We hope you'll join us for a ride some time!</p>
+
+      ${firstRide()}
 
       <h2>Event types</h2>
       <ul>
@@ -563,7 +617,7 @@ function riderInfo() {
     <article class="prose">
       <h1>New rider sign-up</h1>
       <p>Riding with us for the first time? Fill this in once, before your first event. It puts you in our rider list, so your brevet card and paperwork can be printed ahead and nothing gets mistyped on the morning of the ride. The RBA will email you a confirmation once you're added.</p>
-      <p>You'll need an active <a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">RUSA membership</a> to ride.</p>
+      <p>You'll need your RUSA number. Not a member yet? <a href="https://rusa.org/pages/memberservices" target="_blank" rel="noopener">Join RUSA</a> first; see <a href="/about#first-ride">your first ride</a> for the steps.</p>
     </article>
     <form id="rider-form" class="rider-form" method="post" action="${RIDER_INFO_ACTION}">
       <div class="field-grid">
@@ -763,6 +817,16 @@ function awards() {
     </article>`;
 }
 
+// Shown when the content files fail to load (offline, or a bad deploy): every page needs them.
+function loadError() {
+  return `
+    <article class="prose load-error">
+      <h1>This page didn't load</h1>
+      <p>The ride and route lists couldn't be fetched. Check your connection and reload the page.</p>
+      <p>Our events are also listed on <a href="https://rusa.org/cgi-bin/eventsearch_GF.pl" target="_blank" rel="noopener">RUSA's event search</a> (region NY: Central/Western) and on <a href="https://randonneuring.org" target="_blank" rel="noopener">randonneuring.org</a>. For anything else, email the RBA at ${mailLink("rba")}.</p>
+    </article>`;
+}
+
 // ---- router ----
 
 function render() {
@@ -813,6 +877,11 @@ app.addEventListener("click", (e) => {
   panel.hidden = !open;
   btn.setAttribute("aria-expanded", String(open));
 });
+// Keep "Before you ride" open or closed across re-renders (filter chips redraw the page).
+// toggle doesn't bubble, so listen in the capture phase.
+app.addEventListener("toggle", (e) => {
+  if (e.target.classList?.contains("ride-info")) state.infoOpen = e.target.open;
+}, true);
 // Re-render only the table so the search box keeps focus while typing.
 app.addEventListener("input", (e) => {
   if (e.target.id === "routeQuery") {
@@ -836,10 +905,17 @@ document.addEventListener("click", (e) => {
   if (!a || a.origin !== location.origin || a.target || /\.\w+$/.test(a.pathname)) return;
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   e.preventDefault();
-  if (a.pathname !== location.pathname) history.pushState(null, "", a.pathname);
+  if (a.pathname + a.hash !== location.pathname + location.hash) history.pushState(null, "", a.pathname + a.hash);
   render();
-  window.scrollTo(0, 0);
+  scrollToTarget();
 });
+// After a render, show the #section a link points at (e.g. /about#first-ride), else the top.
+function scrollToTarget() {
+  const id = location.hash.startsWith("#/") ? "" : location.hash.slice(1);
+  const el = id && document.getElementById(id);
+  if (el) el.scrollIntoView();
+  else window.scrollTo(0, 0);
+}
 window.addEventListener("popstate", render);
 // Old hash links (flxrando.org/#/calendar) still work: move the hash into the path.
 function fromHash() {
@@ -851,8 +927,10 @@ window.addEventListener("hashchange", () => {
   window.scrollTo(0, 0);
 });
 fromHash();
-bannerArt().then((svg) => document.querySelector(".banner-inner").prepend(svg));
+// The art is decoration; without it the banner still shows the club name.
+bannerArt().then((svg) => document.querySelector(".banner-inner").prepend(svg), (err) => console.warn(err));
 document.querySelectorAll("[data-email]").forEach((el) => { el.outerHTML = mailLink(el.dataset.email); });
-loadContent().then(render, (err) => {
-  app.innerHTML = `<p>Could not load the site's content (${esc(err.message)}).</p>`;
+loadContent().then(() => { render(); if (location.hash) scrollToTarget(); }, (err) => {
+  console.error(err);
+  app.innerHTML = loadError();
 });
